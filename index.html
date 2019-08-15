@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+  <title>Movie Database</title>
+</head>
+<body>
+    <div class="row">
+      <div class="search-form">
+        <h3 class="search-heading">Search to add movie</h3>
+        <div>
+          <div class="form-group">
+              <input class="form-control" type="search" name="movie" id="search-box" placeholder="search movie title">
+          </div>
+          <div class="form-group">
+              <button class="btn btn-lg btn-dark" id="search">Search movies</button>
+              <button class="btn btn-lg btn-secondary" id="clear-search">Clear search</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container" id="alert-container"></div>
+    <div class="container row text-center" id="output">
+      <!-- To be filled by Javascript -->
+    </div>
+    <div class="movie-container">
+      <div class="row">
+      <div class="col-1-of-4"></div>
+      <div class="col-2-of-4"><h1 class='table-heading-database'>Movie Database</h1></div>
+      <div class="col-1-of-4"><h3 class="table-heading-database-secondary" id="totalMovies"></h3></div>
+      </div>
+      <table id="movie-table" class="table table-striped table-bordered table-sm sortable" data-sortable>
+        <thead class="thead-dark text-center">
+          <tr>
+            <th class="sortable-nosort">#</th>
+            <th scope="col">Title</th>
+            <th scope="col">Rating</th>
+            <th scope="col">Release</th>
+            <th scope="col">Runtime</th>
+            <th scope="col">Genre</th>
+            <th scope="col">Resolution</th>
+            <th scope="col">Format</th>
+            <th scope="col">IMDB</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody class="table-body text-center">
+          <!-- To be filled by Javascript -->
+        </tbody>
+      </table>
+      <div id="empty-database" class="text-right"></div>
+    </div>
+
+
+
+  <script src="app.js"></script>
+</body>
+</html>
