@@ -9,22 +9,11 @@ document.getElementById('clear-search').addEventListener('click', function() {
 });
 
 let movies = [];
+var databaseFile = null;
 
 function populateMovieList(movies){
   if(movies.length > 0){
-    document.getElementById("empty-database").innerHTML = `
-      <button class="btn btn-info" id="empty">Remove all movies</button>`;
-    document.getElementById('empty').addEventListener('click', function() {
-      document.getElementById("empty-database").innerHTML = `
-      <button class="btn btn-warning" id="confirm">Are you sure?</button>`;
-      document.getElementById('confirm').addEventListener('click', function() {
-        document.getElementById("empty-database").innerHTML = `
-        <button class="btn btn-danger" id="double-confirm">Last chance to rethink</button>`;
-        document.getElementById('double-confirm').addEventListener('click', function() {
-          emptyDatabase();
-        });
-      });
-    });
+    loadEventListeners();
     document.getElementById("alert-container").innerHTML = ``;
     storeMovies(movies);
     let html = '';
@@ -207,6 +196,39 @@ function emptyDatabase() {
   movies = [];
   storeMovies(movies);
   document.location.reload();
+}
+
+function makeDatabaseFile(movies) {
+  var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(movies));
+  var downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href",     dataStr);
+  downloadAnchorNode.setAttribute("download", "movies.json");
+  document.body.appendChild(downloadAnchorNode); 
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+}  
+
+function loadEventListeners() {
+  document.getElementById("bottom-btn").innerHTML = `
+  <button class="btn btn-info" id="empty">Remove all movies</button>
+  <button class="btn btn-info" id="download-btn">Download Database</button>`;
+  document.getElementById('empty').addEventListener('click', function() {
+    document.getElementById("empty-database").innerHTML = `
+    <button class="btn btn-warning" id="confirm">Are you sure?</button>`;
+    document.getElementById('confirm').addEventListener('click', function() {
+      document.getElementById("empty-database").innerHTML = `
+      <button class="btn btn-danger" id="double-confirm">Last chance to rethink</button>`;
+      document.getElementById('double-confirm').addEventListener('click', function() {
+        emptyDatabase();
+      });
+    });
+  });
+
+  var download = document.getElementById('download-btn');
+
+  download.addEventListener('click', function () {
+    makeDatabaseFile(movies);    
+  }, false);
 }
 
 getStoredMovies();
