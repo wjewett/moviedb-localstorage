@@ -56,7 +56,6 @@ function populateMovieList(movies){
 
 // Get from Movies external API
 function getMovies(search) {
-  console.log(search);
   var url = `http://www.omdbapi.com/?s=${search}&apikey=thewdb`;
   fetch(url)
     .then(function(res){
@@ -64,7 +63,6 @@ function getMovies(search) {
     })
     .then(function(data) {
       var results = data.Search;
-      console.log(results);
       let output = '';
       results.forEach(function(user) {
         if(user.Type==="movie"){
@@ -153,8 +151,15 @@ function addMovie(imdb) {
     })
     .then(function(data) {
       let results = data;
-      const newMovie = {title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, imdb: imdb};
+      var sortTitle = '';
+      if (data.Title.substr(0,4) === "The ") {
+        sortTitle = data.Title.slice(4, data.Title.length);
+      } else {
+        sortTitle = data.Title;
+      }
+      const newMovie = {sortTitle: sortTitle, title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, imdb: imdb};
       movies.push(newMovie);
+      sortMovies(movies);
       populateMovieList(movies);
       return newMovie;
     })
@@ -210,13 +215,15 @@ function makeDatabaseFile(movies) {
 
 function loadEventListeners() {
   document.getElementById("bottom-btn").innerHTML = `
-  <button class="btn btn-info" id="empty">Remove all movies</button>
-  <button class="btn btn-info" id="download-btn">Download Database</button>`;
+  <button class="btn btn-info" id="download-btn">Export Database</button>
+  <button class="btn btn-info" id="empty">Remove all movies</button>`;
   document.getElementById('empty').addEventListener('click', function() {
-    document.getElementById("empty-database").innerHTML = `
+    document.getElementById("bottom-btn").innerHTML = `
+    <button class="btn btn-info" id="download-btn">Export Database</button>
     <button class="btn btn-warning" id="confirm">Are you sure?</button>`;
     document.getElementById('confirm').addEventListener('click', function() {
-      document.getElementById("empty-database").innerHTML = `
+      document.getElementById("bottom-btn").innerHTML = `
+      <button class="btn btn-info" id="download-btn">Export Database</button>
       <button class="btn btn-danger" id="double-confirm">Last chance to rethink</button>`;
       document.getElementById('double-confirm').addEventListener('click', function() {
         emptyDatabase();
@@ -229,6 +236,44 @@ function loadEventListeners() {
   download.addEventListener('click', function () {
     makeDatabaseFile(movies);    
   }, false);
+}
+var upload = document.querySelector(".file");
+upload.addEventListener('change', function() {
+  readDatabaseFile(upload);
+})
+
+function readDatabaseFile(upload) {
+  document.getElementById('import-btn').innerHTML = `
+  <button class="btn btn-info text-left" id="import">Import Selected File</button>`;
+  upload.style.display = "none";
+  document.getElementById('import').onclick = function() {
+    var files = document.getElementById('selectFiles').files;
+  if (files.length <= 0) {
+    return false;
+  }
+
+  var fr = new FileReader();
+
+  fr.onload = function(e) { 
+  console.log(e);
+    var result = JSON.parse(e.target.result);
+    var stringMovies = JSON.stringify(result, null, 2);
+    movies = JSON.parse(stringMovies);
+    console.log(movies);
+    storeMovies(movies);
+    populateMovieList(movies);
+  }
+
+  fr.readAsText(files.item(0));
+  };
+}
+
+function sortMovies(movies){
+  movies.sort(function(a, b) {
+    var textA = a.sortTitle.toUpperCase();
+    var textB = b.sortTitle.toUpperCase();
+    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+});
 }
 
 getStoredMovies();

@@ -1,4 +1,7 @@
-.search-form{
+html{
+  font-size: 14px;
+  
+}.search-form{
   width: 400px;
   margin: 25px auto;
 }
@@ -78,9 +81,18 @@ label {
   font-size: 14px !important;
   margin-bottom: 4px;
 }
-/* .bottom-btn {
-  display: inline;
+
+.bottom {
+  display: inline-block;
 }
-#download {
-  display: inline;
-} */
+.file {
+  position: relative;
+  overflow: hidden;
+}
+input[type="file"] {
+  position: absolute;
+  font-size: 50px;
+  opacity: 0;
+  right: 0;
+  top: 0;
+}
