@@ -30,8 +30,8 @@ function populateMovieList(movies){
         <td>${movies.genre}</td>
         <td>${movies.res}</td>
         <td>${movies.format}</td>
-        <td><a class="imdb-logo" href="https://www.imdb.com/title/${movies.imdb}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></td>
-        <td><i class="fa fa-trash-o" id="delete-${movies.imdb}" aria-hidden="true"></i></td>
+        <td><a class="imdb-logo" href="https://www.imdb.com/title/${movies.IMDb}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></td>
+        <td><i class="fa fa-trash-o" id="delete-${movies.IMDb}" aria-hidden="true"></i></td>
       </tr>`;
     });
     // Insert into the DOM
@@ -42,8 +42,8 @@ function populateMovieList(movies){
       document.getElementById('totalMovies').textContent = counter + " movies";
     }
       movies.forEach(function(movies){
-      document.getElementById(`delete-${movies.imdb}`).addEventListener('click', function(){
-        deleteMovie(movies.imdb);
+      document.getElementById(`delete-${movies.IMDb}`).addEventListener('click', function(){
+        deleteMovie(movies.IMDb);
       })
     });
   } else {
@@ -64,38 +64,44 @@ function getMovies(search) {
     .then(function(data) {
       var results = data.Search;
       let output = '';
+      let IMDbArray = [];
       results.forEach(function(user) {
         if(user.Type==="movie"){
-          output += `
-          <div class="card mb-2 mr-3" style="max-width: 423px;">
-            <div class="row no-gutters">
-              <div class="col-md-4">
-                <img src="${user.Poster}" class="card-img">
-              </div>
-              <div class="col-md-8">
-                <div class="card-body">
-                  <h5 class="card-title"><strong>${user.Title}</strong></h5>
-                  <p class="card-text"><a class="float-left" href="https://www.imdb.com/title/${user.imdbID}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></p>
-                  <p class="card-text text-center"><strong>Released: ${user.Year}</strong></p>
-                    <p class="formats">Resolution:<br>
-                      <input type="checkbox" id="sd-${user.imdbID}" name="resolution">
-                      <label for="sd-${user.imdbID}">DVD/SD</label>
-                      <input type="checkbox" id="hd-${user.imdbID}" name="resolution">
-                      <label for="hd-${user.imdbID}">Blu-ray/HD</label>
-                      <input type="checkbox" id="uhd-${user.imdbID}" name="resolution">
-                      <label for="uhd-${user.imdbID}">4K/UHD</label>
-                      Format:<br>
-                      <input type="checkbox" id="disc-${user.imdbID}" name="format" value="">
-                      <label for="disc-${user.imdbID}">Disc</label>
-                      <input type="checkbox" id="digital-${user.imdbID}" name="format">
-                      <label for="digital-${user.imdbID}">Digital</label>
-                    <br>
-                    <span id="change-${user.imdbID}"><button id="${user.imdbID}" class="add-btn text-center btn btn-sm btn-primary">Add to MovieDB</button></span></p>
+          if(IMDbArray.includes(user.imdbID)) {   
+            console.log("Movie already displayed");
+          } else {  
+            output += `
+            <div class="card mb-2 mr-3" style="max-width: 423px;">
+              <div class="row no-gutters">
+                <div class="col-md-4">
+                  <img src="${user.Poster}" class="card-img">
+                </div>
+                <div class="col-md-8">
+                  <div class="card-body">
+                    <h5 class="card-title"><strong>${user.Title}</strong></h5>
+                    <p class="card-text"><a class="float-left" href="https://www.imdb.com/title/${user.imdbID}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></p>
+                    <p class="card-text text-center"><strong>Released: ${user.Year}</strong></p>
+                      <p class="formats">Resolution:<br>
+                        <input type="checkbox" id="sd-${user.imdbID}" name="resolution">
+                        <label for="sd-${user.imdbID}">DVD/SD</label>
+                        <input type="checkbox" id="hd-${user.imdbID}" name="resolution">
+                        <label for="hd-${user.imdbID}">Blu-ray/HD</label>
+                        <input type="checkbox" id="uhd-${user.imdbID}" name="resolution">
+                        <label for="uhd-${user.imdbID}">4K/UHD</label>
+                        Format:<br>
+                        <input type="checkbox" id="disc-${user.imdbID}" name="format" value="">
+                        <label for="disc-${user.imdbID}">Disc</label>
+                        <input type="checkbox" id="digital-${user.imdbID}" name="format">
+                        <label for="digital-${user.imdbID}">Digital</label>
+                      <br>
+                      <span id="change-${user.imdbID}"><button id="${user.imdbID}" class="add-btn text-center btn btn-sm btn-primary">Add to MovieDB</button></span></p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        `;
+            `;
+            IMDbArray.push(user.imdbID);
+          }
         }
       });
       document.getElementById('output').innerHTML = output;
@@ -114,6 +120,12 @@ function getMovies(search) {
 
 // Get selected Movie imdb search from external API
 function addMovie(imdb) {
+  if (movies.some(e => e.IMDb === imdb)) {
+    /* movies contains the imdb ID already */
+    console.log("Duplicate");
+    document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn-sm btn btn-warning">Movie Already Exists</button>`;
+    return movies;
+  }
   document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn-sm btn btn-success">Movie Added</button>`;
   const url = `http://www.omdbapi.com/?i=${imdb}&apikey=thewdb`;
   let format, resolution;
@@ -152,14 +164,23 @@ function addMovie(imdb) {
     .then(function(data) {
       let results = data;
       var sortTitle = '';
-      if (data.Title.substr(0,4) === "The ") {
-        sortTitle = data.Title.slice(4, data.Title.length);
+      var articles = ['the', 'a', 'an', 'The', 'A', 'An'];
+      if (articles.includes(data.Title.substr(0,data.Title.indexOf(' ')))) {
+        sortTitle = data.Title.substr(data.Title.indexOf(' ')+1);
       } else {
         sortTitle = data.Title;
       }
-      const newMovie = {sortTitle: sortTitle, title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, imdb: imdb};
+      console.log(data.Title.substr(0,data.Title.indexOf(' ')));
+      console.log(data.Title);
+      console.log(sortTitle);
+      const newMovie = {sortTitle: sortTitle, title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, IMDb: imdb};
       movies.push(newMovie);
       sortMovies(movies);
+      for (let index = 0; index < movies.length-1; index++) {
+        if(movies[index].IMDb === movies[index+1].IMDb){
+          movies = movies.splice(index+1,1);
+        }
+      }
       populateMovieList(movies);
       return newMovie;
     })
@@ -170,7 +191,7 @@ function addMovie(imdb) {
 
 function deleteMovie(imdb){
   movies.forEach(function(movie){
-    if(imdb == movie.imdb){
+    if(imdb == movie.IMDb){
       movies.splice(movies.indexOf(movie), 1);
     }
   });
