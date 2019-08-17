@@ -8,7 +8,7 @@ document.getElementById('clear-search').addEventListener('click', function() {
   document.getElementById('search-box').value = '';
 });
 
-let movies = [];
+let movieDB;
 var databaseFile = null;
 
 function populateMovieList(movies){
@@ -120,11 +120,11 @@ function getMovies(search) {
 
 // Get selected Movie imdb search from external API
 function addMovie(imdb) {
-  if (movies.some(e => e.IMDb === imdb)) {
+  if (movieDB.some(e => e.IMDb === imdb)) {
     /* movies contains the imdb ID already */
     console.log("Duplicate");
     document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn-sm btn btn-warning">Movie Already Exists</button>`;
-    return movies;
+    return movieDB;
   }
   document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn-sm btn btn-success">Movie Added</button>`;
   const url = `http://www.omdbapi.com/?i=${imdb}&apikey=thewdb`;
@@ -163,25 +163,15 @@ function addMovie(imdb) {
     })
     .then(function(data) {
       let results = data;
-      var sortTitle = '';
-      var articles = ['the', 'a', 'an', 'The', 'A', 'An'];
-      if (articles.includes(data.Title.substr(0,data.Title.indexOf(' ')))) {
-        sortTitle = data.Title.substr(data.Title.indexOf(' ')+1);
-      } else {
-        sortTitle = data.Title;
-      }
-      console.log(data.Title.substr(0,data.Title.indexOf(' ')));
-      console.log(data.Title);
-      console.log(sortTitle);
-      const newMovie = {sortTitle: sortTitle, title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, IMDb: imdb};
-      movies.push(newMovie);
-      sortMovies(movies);
-      for (let index = 0; index < movies.length-1; index++) {
-        if(movies[index].IMDb === movies[index+1].IMDb){
-          movies = movies.splice(index+1,1);
+      const newMovie = {title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, IMDb: imdb};
+      movieDB.push(newMovie);
+      sortMovies(movieDB);
+      for (let index = 0; index < movieDB.length-1; index++) {
+        if(movieDB[index].IMDb === movieDB[index+1].IMDb){
+          movieDB = movieDB.splice(index+1,1);
         }
       }
-      populateMovieList(movies);
+      populateMovieList(movieDB);
       return newMovie;
     })
     .catch(function(err){
@@ -190,16 +180,16 @@ function addMovie(imdb) {
 } 
 
 function deleteMovie(imdb){
-  movies.forEach(function(movie){
+  movieDB.forEach(function(movie){
     if(imdb == movie.IMDb){
-      movies.splice(movies.indexOf(movie), 1);
+      movieDB.splice(movieDB.indexOf(movie), 1);
     }
   });
-  storeMovies(movies);
-  if(movies.length == 0){
+  storeMovies(movieDB);
+  if(movieDB.length == 0){
     document.location.reload();
   } else {
-  populateMovieList(movies);
+  populateMovieList(movieDB);
   }
 }
 
@@ -211,16 +201,16 @@ function storeMovies(movies) {
 
 function getStoredMovies() {
   if(JSON.parse(localStorage.getItem('movies')) == null){
-    populateMovieList(movies);
+    populateMovieList(movieDB);
   } else {
-    movies = JSON.parse(localStorage.getItem('movies'));
-    populateMovieList(movies);
+    movieDB = JSON.parse(localStorage.getItem('movies'));
+    populateMovieList(movieDB);
   }
 }
 
 function emptyDatabase() {
-  movies = [];
-  storeMovies(movies);
+  movieDB = [];
+  storeMovies(movieDB);
   document.location.reload();
 }
 
@@ -255,7 +245,7 @@ function loadEventListeners() {
   var download = document.getElementById('download-btn');
 
   download.addEventListener('click', function () {
-    makeDatabaseFile(movies);    
+    makeDatabaseFile(movieDB);    
   }, false);
 }
 var upload = document.querySelector(".file");
@@ -265,8 +255,7 @@ upload.addEventListener('change', function() {
 
 function readDatabaseFile(upload) {
   document.getElementById('import-btn').innerHTML = `
-  <button class="btn btn-info text-left" id="import">Import Selected File</button>`;
-  upload.style.display = "none";
+  <button class="btn btn-warning text-left" id="import">Import Selected File</button>`;
   document.getElementById('import').onclick = function() {
     var files = document.getElementById('selectFiles').files;
   if (files.length <= 0) {
@@ -279,21 +268,33 @@ function readDatabaseFile(upload) {
   console.log(e);
     var result = JSON.parse(e.target.result);
     var stringMovies = JSON.stringify(result, null, 2);
-    movies = JSON.parse(stringMovies);
-    console.log(movies);
-    storeMovies(movies);
-    populateMovieList(movies);
+    movieDB = JSON.parse(stringMovies);
+    console.log(movieDB);
+    storeMovies(movieDB);
+    populateMovieList(movieDB);
+    document.getElementById('import-btn').innerHTML = '';
   }
 
   fr.readAsText(files.item(0));
   };
 }
 
+function getSortTitle(name) {
+  var sortTitle = '';
+  var articles = ['THE', 'A', 'AN'];
+  if (articles.includes(name.substr(0,name.indexOf(' ')).toUpperCase())) {
+    sortTitle = name.substr(name.indexOf(' ')+1);
+  } else {
+    sortTitle = name;
+  }
+  return sortTitle;
+}
+
 function sortMovies(movies){
   movies.sort(function(a, b) {
-    var textA = a.sortTitle.toUpperCase();
-    var textB = b.sortTitle.toUpperCase();
-    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+    var textA = getSortTitle(a.title.toUpperCase());
+    var textB = getSortTitle(b.title.toUpperCase());
+    return (textA < textB) ? -1 : ((textA > textB) ? 1 : 0);
 });
 }
 
