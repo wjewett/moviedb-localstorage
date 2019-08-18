@@ -9,6 +9,7 @@ document.getElementById('clear-search').addEventListener('click', function() {
 });
 
 let movieDB = [];
+var row = '';
 var databaseFile = null;
 
 function populateMovieList(movies){
@@ -29,7 +30,7 @@ function populateMovieList(movies){
         <td>${movie.res}</td>
         <td>${movie.format}</td>
         <td><a class="imdb-logo" href="https://www.imdb.com/title/${movie.IMDb}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></td>
-        <td><a class="" data-toggle="modal" data-target="#exampleModal"><i class="fa fa-pencil" id="edit-${movie.IMDb}" aria-hidden="true"></i></a>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" id="delete-${movie.IMDb}" aria-hidden="true"></i></td>
+        <td><i class="fa fa-pencil" id="edit-${movie.IMDb}" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" id="delete-${movie.IMDb}" aria-hidden="true"></i></td>
       </tr>`;
     });
     // Insert into the DOM
@@ -44,9 +45,17 @@ function populateMovieList(movies){
         deleteMovie(movie.IMDb);
       });
       document.getElementById(`edit-${movie.IMDb}`).addEventListener('click', function(){
+        document.getElementById(`button-${movie.IMDb}`).click();
         editMovie(movies.indexOf(movie));
       });
+
+      drawModals(movieDB.indexOf(movie));
     });
+
+    var div = document.getElementById('div-modals');
+    div.innerHTML = row;
+    // document.body.insertBefore(div, null);
+
   } else {
     document.getElementById("alert-container").innerHTML = `
     <div class="alert alert-danger" role="alert">
@@ -168,63 +177,64 @@ function deleteMovie(imdb){
   }
 }
 
-function editMovie(index){
-  var row = `
-    <div class="modal fade show" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Update <strong>${movieDB[index].title}:&nbsp</strong></h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
+function drawModals(index) {
 
-          <p class="formats">
-          Genre: <input type="text" class="modal-genre" id="genre-${movieDB[index].IMDb}" name="genre" value="${movieDB[index].genre}">
-          <br>
-          <br>
-          Resolution:
-          <input type="checkbox" id="sd-${movieDB[index].IMDb}" name="resolution">
-          <label for="sd-${movieDB[index].IMDb}">DVD/SD</label>
-          <input type="checkbox" id="hd-${movieDB[index].IMDb}" name="resolution">
-          <label for="hd-${movieDB[index].IMDb}">Blu-ray/HD</label>
-          <input type="checkbox" id="uhd-${movieDB[index].IMDb}" name="resolution">
-          <label for="uhd-${movieDB[index].IMDb}">4K/UHD</label><br><br>
-          Format:
-          <input type="checkbox" id="disc-${movieDB[index].IMDb}" name="format" value="">
-          <label for="disc-${movieDB[index].IMDb}">Disc</label>
-          <input type="checkbox" id="digital-${movieDB[index].IMDb}" name="format">
-          <label for="digital-${movieDB[index].IMDb}">Digital</label>
-          </p>
+  row += `
+  <div class="modal fade" id="modal-${movieDB[index].IMDb}" tabindex="-1" role="dialog" aria-labelledby="${movieDB[index].IMDb}-Label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="${movieDB[index].IMDb}-Label">Update <strong>${movieDB[index].title}:&nbsp</strong></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
 
-          </div>
-          <div class="modal-footer">
-            <button type="button" id="modal-close" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" id="modal-save" class="btn btn-primary">Save changes</button>
-          </div>
+        <p class="formats">
+        Genre: <input type="text" class="modal-genre" id="genre-${movieDB[index].IMDb}" name="genre" value="${movieDB[index].genre}">
+        <br>
+        <br>
+        Resolution:
+        <input type="checkbox" id="sd-${movieDB[index].IMDb}" name="resolution">
+        <label for="sd-${movieDB[index].IMDb}">DVD/SD</label>
+        <input type="checkbox" id="hd-${movieDB[index].IMDb}" name="resolution">
+        <label for="hd-${movieDB[index].IMDb}">Blu-ray/HD</label>
+        <input type="checkbox" id="uhd-${movieDB[index].IMDb}" name="resolution">
+        <label for="uhd-${movieDB[index].IMDb}">4K/UHD</label><br><br>
+        Format:
+        <input type="checkbox" id="disc-${movieDB[index].IMDb}" name="format" value="">
+        <label for="disc-${movieDB[index].IMDb}">Disc</label>
+        <input type="checkbox" id="digital-${movieDB[index].IMDb}" name="format">
+        <label for="digital-${movieDB[index].IMDb}">Digital</label>
+        </p>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="close-${movieDB[index].IMDb}" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" id="save-${movieDB[index].IMDb}" class="btn btn-primary">Save changes</button>
         </div>
       </div>
     </div>
-    `;
-  var div = document.createElement("div");
-  div.innerHTML = row;
-  document.body.insertBefore(div, null);
+  </div>
+  
+  <button type="button" class="modal-btn btn btn-primary" id="button-${movieDB[index].IMDb}" data-toggle="modal" data-target="#modal-${movieDB[index].IMDb}">Launch demo modal</button>
+  `;
 
-  document.getElementById('modal-close').addEventListener('click', function() {
-    // document.location.reload();
+}
+
+function editMovie(index){
+
+
+  document.getElementById(`close-${movieDB[index].IMDb}`).addEventListener('click', function() {
   });
-  document.getElementById('modal-save').addEventListener('click', function() {
+  document.getElementById(`save-${movieDB[index].IMDb}`).addEventListener('click', function() {
     var newFormRes = getFormatResolution(document.getElementById("sd-"+movieDB[index].IMDb).checked, document.getElementById("hd-"+movieDB[index].IMDb).checked, document.getElementById("uhd-"+movieDB[index].IMDb).checked, document.getElementById("disc-"+movieDB[index].IMDb).checked, document.getElementById("digital-"+movieDB[index].IMDb).checked);
-
     movieDB[index].genre = document.getElementById(`genre-${movieDB[index].IMDb}`).value;
     movieDB[index].format = newFormRes.format;
     movieDB[index].res = newFormRes.res;
-    document.getElementById("modal-close").click(); 
+    document.getElementById(`close-${movieDB[index].IMDb}`).click(); 
     populateMovieList(movieDB);
-    populateMovieList(movieDB);
-    // document.location.reload();
   });
 
   
