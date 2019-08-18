@@ -129,34 +129,8 @@ function addMovie(imdb) {
   }
   document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn-sm btn btn-success">Movie Added</button>`;
   const url = `http://www.omdbapi.com/?i=${imdb}&apikey=thewdb`;
-  let format, resolution;
-  format = resolution = '';
-  // check for format
-  if(document.getElementById("sd-"+imdb).checked == true) {
-    if(document.getElementById("hd-"+imdb).checked == true && document.getElementById("uhd-"+imdb).checked == true) {
-      resolution = "SD/HD/UHD";
-    } else if (document.getElementById("hd-"+imdb).checked == true) {
-      resolution = "SD/HD";
-    } else {
-      resolution = "SD";
-    }
-  } else if(document.getElementById("hd-"+imdb).checked == true) {
-    if(document.getElementById("uhd-"+imdb).checked == true){
-      resolution = "HD/UHD";
-    } else {
-      resolution = "HD";
-    }
-  } else if (document.getElementById("uhd-"+imdb).checked == true) {
-    resolution = "UHD";
-  }
-  // check digital or disc
-  if(document.getElementById("disc-"+imdb).checked == true && document.getElementById("digital-"+imdb).checked == true) {
-    format = "disc/digital";
-  } else if(document.getElementById("disc-"+imdb).checked == true && document.getElementById("digital-"+imdb).checked == false){
-    format = "disc";
-  } else if(document.getElementById("digital-"+imdb).checked == true){
-    format = "digital";
-  }
+
+  var formRes = getFormatResolution(document.getElementById("sd-"+imdb).checked, document.getElementById("hd-"+imdb).checked, document.getElementById("uhd-"+imdb).checked, document.getElementById("disc-"+imdb).checked, document.getElementById("digital-"+imdb).checked);
 
   fetch(url)
     .then(function(res){
@@ -164,7 +138,7 @@ function addMovie(imdb) {
     })
     .then(function(data) {
       let results = data;
-      const newMovie = {title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, IMDb: imdb};
+      const newMovie = {title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: formRes.format, res: formRes.res, IMDb: imdb};
       movieDB.push(newMovie);
       sortMovies(movieDB);
       for (let index = 0; index < movieDB.length-1; index++) {
@@ -208,7 +182,7 @@ function editMovie(index){
           <div class="modal-body">
 
           <p class="formats">
-          Genre: <input type="text" class="modal-genre" id="genre=${movieDB[index].IMDb}" name="genre" value="${movieDB[index].genre}">
+          Genre: <input type="text" class="modal-genre" id="genre-${movieDB[index].IMDb}" name="genre" value="${movieDB[index].genre}">
           <br>
           <br>
           Resolution:
@@ -239,12 +213,18 @@ function editMovie(index){
   document.body.insertBefore(div, null);
 
   document.getElementById('modal-close').addEventListener('click', function() {
-    var value = document.getElementById('search-box').value;
-    getMovies(value);
+    // document.location.reload();
   });
   document.getElementById('modal-save').addEventListener('click', function() {
-    var value = document.getElementById('search-box').value;
-    getMovies(value);
+    var newFormRes = getFormatResolution(document.getElementById("sd-"+movieDB[index].IMDb).checked, document.getElementById("hd-"+movieDB[index].IMDb).checked, document.getElementById("uhd-"+movieDB[index].IMDb).checked, document.getElementById("disc-"+movieDB[index].IMDb).checked, document.getElementById("digital-"+movieDB[index].IMDb).checked);
+
+    movieDB[index].genre = document.getElementById(`genre-${movieDB[index].IMDb}`).value;
+    movieDB[index].format = newFormRes.format;
+    movieDB[index].res = newFormRes.res;
+    document.getElementById("modal-close").click(); 
+    populateMovieList(movieDB);
+    populateMovieList(movieDB);
+    // document.location.reload();
   });
 
   
@@ -354,5 +334,42 @@ function sortMovies(movies){
     return (textA < textB) ? -1 : ((textA > textB) ? 1 : 0);
 });
 }
+
+function getFormatResolution(sd, hd, uhd, disc, digital){
+  let format, resolution;
+  let formatRes = {};
+  format = resolution = '';
+  // check for format
+  if(sd) {
+    if(hd && uhd) {
+      resolution = "SD/HD/UHD";
+    } else if (hd) {
+      resolution = "SD/HD";
+    } else {
+      resolution = "SD";
+    }
+  } else if(hd) {
+    if(uhd){
+      resolution = "HD/UHD";
+    } else {
+      resolution = "HD";
+    }
+  } else if (uhd) {
+    resolution = "UHD";
+  }
+  // check digital or disc
+  if(disc == true && digital) {
+    format = "disc/digital";
+  } else if(disc && !digital){
+    format = "disc";
+  } else if(digital){
+    format = "digital";
+  }
+  formatRes.format = format;
+  formatRes.res = resolution;
+
+  return formatRes;
+}
+
 
 getStoredMovies();
