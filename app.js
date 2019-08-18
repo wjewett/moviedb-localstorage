@@ -17,34 +17,35 @@ function populateMovieList(movies){
     document.getElementById("alert-container").innerHTML = ``;
     storeMovies(movies);
     let html = '';
-    let counter = 0;
-    movies.forEach(function(movies){
-      counter++;
+    movies.forEach(function(movie){
       html += `
-      <tr>
-        <td>${counter}</td>
-        <td>${movies.title}</td>
-        <td>${movies.rating}</td>
-        <td>${movies.release}</td>
-        <td>${movies.runtime}</td>
-        <td>${movies.genre}</td>
-        <td>${movies.res}</td>
-        <td>${movies.format}</td>
-        <td><a class="imdb-logo" href="https://www.imdb.com/title/${movies.IMDb}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></td>
-        <td><i class="fa fa-trash-o" id="delete-${movies.IMDb}" aria-hidden="true"></i></td>
+      <tr id="row-${movies.indexOf(movie)+1}">
+        <td>${movies.indexOf(movie)+1}</td>
+        <td>${movie.title}</td>
+        <td>${movie.rating}</td>
+        <td>${movie.release}</td>
+        <td>${movie.runtime}</td>
+        <td>${movie.genre}</td>
+        <td>${movie.res}</td>
+        <td>${movie.format}</td>
+        <td><a class="imdb-logo" href="https://www.imdb.com/title/${movie.IMDb}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></td>
+        <td><a class="" data-toggle="modal" data-target="#exampleModal"><i class="fa fa-pencil" id="edit-${movie.IMDb}" aria-hidden="true"></i></a>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" id="delete-${movie.IMDb}" aria-hidden="true"></i></td>
       </tr>`;
     });
     // Insert into the DOM
     document.querySelector('.table-body').innerHTML = html;
-    if(counter == 1){
-      document.getElementById('totalMovies').textContent = counter + " movie";
+    if(movies.length == 1){
+      document.getElementById('totalMovies').textContent = movies.length + " movie";
     } else {
-      document.getElementById('totalMovies').textContent = counter + " movies";
+      document.getElementById('totalMovies').textContent = movies.length + " movies";
     }
-      movies.forEach(function(movies){
-      document.getElementById(`delete-${movies.IMDb}`).addEventListener('click', function(){
-        deleteMovie(movies.IMDb);
-      })
+    movies.forEach(function(movie){
+      document.getElementById(`delete-${movie.IMDb}`).addEventListener('click', function(){
+        deleteMovie(movie.IMDb);
+      });
+      document.getElementById(`edit-${movie.IMDb}`).addEventListener('click', function(){
+        editMovie(movies.indexOf(movie));
+      });
     });
   } else {
     document.getElementById("alert-container").innerHTML = `
@@ -191,6 +192,62 @@ function deleteMovie(imdb){
   } else {
   populateMovieList(movieDB);
   }
+}
+
+function editMovie(index){
+  var row = `
+    <div class="modal fade show" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Update <strong>${movieDB[index].title}:&nbsp</strong></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+
+          <p class="formats">
+          Genre: <input type="text" class="modal-genre" id="genre=${movieDB[index].IMDb}" name="genre" value="${movieDB[index].genre}">
+          <br>
+          <br>
+          Resolution:
+          <input type="checkbox" id="sd-${movieDB[index].IMDb}" name="resolution">
+          <label for="sd-${movieDB[index].IMDb}">DVD/SD</label>
+          <input type="checkbox" id="hd-${movieDB[index].IMDb}" name="resolution">
+          <label for="hd-${movieDB[index].IMDb}">Blu-ray/HD</label>
+          <input type="checkbox" id="uhd-${movieDB[index].IMDb}" name="resolution">
+          <label for="uhd-${movieDB[index].IMDb}">4K/UHD</label><br><br>
+          Format:
+          <input type="checkbox" id="disc-${movieDB[index].IMDb}" name="format" value="">
+          <label for="disc-${movieDB[index].IMDb}">Disc</label>
+          <input type="checkbox" id="digital-${movieDB[index].IMDb}" name="format">
+          <label for="digital-${movieDB[index].IMDb}">Digital</label>
+          </p>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="modal-close" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" id="modal-save" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    `;
+  var div = document.createElement("div");
+  div.innerHTML = row;
+  document.body.insertBefore(div, null);
+
+  document.getElementById('modal-close').addEventListener('click', function() {
+    var value = document.getElementById('search-box').value;
+    getMovies(value);
+  });
+  document.getElementById('modal-save').addEventListener('click', function() {
+    var value = document.getElementById('search-box').value;
+    getMovies(value);
+  });
+
+  
 }
 
 function storeMovies(movies) {
