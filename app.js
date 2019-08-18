@@ -8,7 +8,7 @@ document.getElementById('clear-search').addEventListener('click', function() {
   document.getElementById('search-box').value = '';
 });
 
-let movieDB;
+let movieDB = [];
 var databaseFile = null;
 
 function populateMovieList(movies){
