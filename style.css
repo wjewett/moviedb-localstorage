@@ -5,10 +5,6 @@ html{
 .modal-genre {
   width: 100%
 }
-.modal-btn{
-  display: none;
-}
-
 .search-form{
   width: 400px;
   margin: 25px auto;

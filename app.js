@@ -30,7 +30,7 @@ function populateMovieList(movies){
         <td>${movie.res}</td>
         <td>${movie.format}</td>
         <td><a class="imdb-logo" href="https://www.imdb.com/title/${movie.IMDb}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></td>
-        <td><i class="fa fa-pencil" id="edit-${movie.IMDb}" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" id="delete-${movie.IMDb}" aria-hidden="true"></i></td>
+        <td><a class="" data-toggle="modal" data-target="#modal-${movie.IMDb}"><i class="fa fa-pencil" id="edit-${movie.IMDb}" aria-hidden="true"></i></a>&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o" id="delete-${movie.IMDb}" aria-hidden="true"></i></td>
       </tr>`;
     });
     // Insert into the DOM
@@ -45,7 +45,6 @@ function populateMovieList(movies){
         deleteMovie(movie.IMDb);
       });
       document.getElementById(`edit-${movie.IMDb}`).addEventListener('click', function(){
-        document.getElementById(`button-${movie.IMDb}`).click();
         editMovie(movies.indexOf(movie));
       });
 
@@ -217,8 +216,6 @@ function drawModals(index) {
       </div>
     </div>
   </div>
-  
-  <button type="button" class="modal-btn btn btn-primary" id="button-${movieDB[index].IMDb}" data-toggle="modal" data-target="#modal-${movieDB[index].IMDb}">Launch demo modal</button>
   `;
 
 }
