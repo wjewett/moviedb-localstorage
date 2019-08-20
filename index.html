@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="bootstrap.min.css">
-  <link rel="stylesheet" href="style.css">
   <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
   <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
   <title>Movie Database</title>
 </head>
 <body>
+  <div class="">
     <div id="div-modals"></div>
     <div class="row">
       <div class="search-form">
@@ -48,7 +49,8 @@
             <th>Resolution</th>
             <th>Format</th>
             <th>IMDB</th>
-            <th></th>
+            <th><i class="fa fa-pencil-square-o" aria-hidden="true"></i></th>
+            <th><i class="fa fa-trash-o" aria-hidden="true"></i></th>
         </tr>
         </thead>
         <tbody class="table-body text-center">
@@ -62,6 +64,7 @@
         </span>
       </div>
     </div>
+  </div>
 
 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

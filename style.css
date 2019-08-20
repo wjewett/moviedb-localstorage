@@ -1,7 +1,28 @@
 html{
-  font-size: 14px;
-  
+  font-size: 87.5%; 
 }
+  @media (max-width: 75em) {
+  html {
+    font-size: 70%; } }
+  @media (max-width: 56.25em) {
+    html {
+      font-size: 62.5%; } }
+  @media (max-width: 37.5em) {
+    html {
+      font-size: 50%; } }
+  @media (min-width: 112.5em) {
+    html {
+      font-size: 93%; } }
+
+@media (max-width: 78em) {
+.fa {
+  font-size: .8rem;
+}}
+@media (max-width: 56.25em) {
+.fa {
+  font-size: 1rem;
+}}
+
 .modal-genre {
   width: 100%
 }
@@ -84,6 +105,9 @@ input[type="checkbox"]:first-of-type {
 label {
   font-size: 14px !important;
   margin-bottom: 4px;
+}
+.pointer {
+  cursor: pointer;
 }
 
 .bottom {
