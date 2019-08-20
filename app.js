@@ -1,191 +1,194 @@
-document.getElementById("search-box").addEventListener("keyup", function(event) {
-  event.preventDefault();
-  if (event.keyCode === 13) {
-      document.getElementById("search").click();
-  }
-});
-document.getElementById('search').addEventListener('click', function() {
-  var value = document.getElementById('search-box').value;
-  getMovies(value);
-});
-document.getElementById('clear-search').addEventListener('click', function() {
-  document.getElementById('output').innerHTML = '';
-  document.getElementById('search-box').value = '';
-});
-
 let movieDB = [];
 let modals = '';
-let databaseFile = null;
 
+loadSearchAndImportListeners();
 getStoredMovies();
 
-function populateMovieList(){
-  if(movieDB.length > 0){
-    loadEventListeners();
-    document.getElementById("alert-container").innerHTML = ``;
-    storeMovies();
-    let movieRows = '';
-    movieDB.forEach(function(movie){
-      movieRows += `
-      <tr id="row-${movieDB.indexOf(movie)+1}">
-        <td>${movieDB.indexOf(movie)+1}</td>
-        <td>${movie.title}</td>
-        <td>${movie.rating}</td>
-        <td>${movie.release}</td>
-        <td>${movie.runtime}</td>
-        <td>${movie.genre}</td>
-        <td>${movie.res}</td>
-        <td>${movie.format}</td>
-        <td><a class="imdb-logo" href="https://www.imdb.com/title/${movie.IMDb}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></td>
-        <td><a data-toggle="modal" data-target="#modal-${movie.IMDb}"><i class="fa fa-pencil-square-o pointer" id="edit-${movie.IMDb}" aria-hidden="true"></i></a></td>
-        <td><i class="fa fa-trash-o pointer" id="delete-${movie.IMDb}" aria-hidden="true"></i></td>
-      </tr>`;
-    });
-    // Insert into the DOM
-    document.querySelector('.table-body').innerHTML = movieRows;
-    if(movieDB.length == 1){
-      document.getElementById('totalMovies').textContent = movieDB.length + " movie";
-    } else {
-      document.getElementById('totalMovies').textContent = movieDB.length + " movies";
+function loadSearchAndImportListeners() {
+  document.getElementById("search-box").addEventListener("keyup", function(event) {
+    event.preventDefault();
+    if (event.keyCode === 13) {
+        document.getElementById("search").click();
     }
-    movieDB.forEach(function(movie){
-      document.getElementById(`delete-${movie.IMDb}`).addEventListener('click', function(){
-        deleteMovie(movieDB.indexOf(movie));
-      });
-      document.getElementById(`edit-${movie.IMDb}`).addEventListener('click', function(){
-        editMovie(movieDB.indexOf(movie));
-      });
+  });
+  document.getElementById('search').addEventListener('click', function() {
+    getMovies(document.getElementById('search-box').value);
+  });
+  document.getElementById('clear-search').addEventListener('click', function() {
+    document.getElementById('output').innerHTML = '';
+    document.getElementById('search-box').value = '';
+  });
 
-      drawModals(movieDB.indexOf(movie));
-    });
-    var div = document.getElementById('div-modals');
-    div.innerHTML = modals;
-    modals = '';
+  document.querySelector(".file").addEventListener('change', function() {
+    readDatabaseFile();
+  })
+}
 
+// Retrieve movies from Local Storage
+function getStoredMovies() {
+  if(JSON.parse(localStorage.getItem('movies')) != null){
+    movieDB = JSON.parse(localStorage.getItem('movies'));
+  }
+  updateTableDisplay();
+}
+
+// Determine if there are movies and update display
+function updateTableDisplay(){
+  if(movieDB.length > 0){
+    populateMovieTable();
   } else {
+    // Alert database is empty
     document.getElementById("alert-container").innerHTML = `
     <div class="alert alert-danger" role="alert">
       You have no movies in your database. Search for movies to add.
     </div>`;
+    // Clear out unusable displays
+    document.querySelector('.table-body').innerHTML = '';
+    document.getElementById("empty-btn").innerHTML = '';
+    document.getElementById("export-btn").innerHTML = '';
+    document.getElementById('totalMovies').textContent = '';
   }
+}
+
+// Fill movie table with movies
+function populateMovieTable() {
+  loadButtonListeners();
+  storeMovies();
+  document.getElementById("alert-container").innerHTML = ``;
+  let movieRows = '';
+  movieDB.forEach(movie => {
+    movieRows += drawTableRows(movie);
+  });
+
+  // Update movie counter
+  const totalMovies = movieDB.length + ' movie' + (movieDB.length === 1 ? '' : 's');
+  document.getElementById('totalMovies').textContent = totalMovies;
+  
+  // Insert movie table into the DOM
+  document.querySelector('.table-body').innerHTML = movieRows;
+
+  // Create Edit movie modals
+  enableEditDelete();
+  // Insert Edit movie modals into the DOM
+  document.getElementById('div-modals').innerHTML = modals;
+  modals = '';
 }
 
 // Get from Movies external API
 function getMovies(search) {
-  var url = `http://www.omdbapi.com/?s=${search}&apikey=thewdb`;
+  const url = `http://www.omdbapi.com/?s=${search}&apikey=thewdb`;
   fetch(url)
-    .then(function(res){
+    .then(res => {
       return res.json();
     })
-    .then(function(data) {
-      var results = data.Search;
-      let output = '';
-      let IMDbArray = [];
-      var displayedMovies = [];
-      results.forEach(function(user) {
-        if(user.Type==="movie"){
-          if(IMDbArray.includes(user.imdbID)) {   
-            console.log("Movie already displayed");
-          } else {  
-            output += `
-            <div class="card mb-2 mr-3" style="max-width: 423px;">
-              <div class="row no-gutters">
-                <div class="col-md-4">
-                  <img src="${user.Poster}" class="card-img">
-                </div>
-                <div class="col-md-8">
-                  <div class="card-body">
-                    <h5 class="card-title"><strong>${user.Title}</strong></h5>
-                    <p class="card-text"><a class="float-left" href="https://www.imdb.com/title/${user.imdbID}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></p>
-                    <p class="card-text text-center"><strong>Released: ${user.Year}</strong></p>
-                      <p class="formats">Resolution:<br>
-                        <input type="checkbox" id="sd-${user.imdbID}" name="resolution">
-                        <label for="sd-${user.imdbID}">DVD/SD</label>
-                        <input type="checkbox" id="hd-${user.imdbID}" name="resolution">
-                        <label for="hd-${user.imdbID}">Blu-ray/HD</label>
-                        <input type="checkbox" id="uhd-${user.imdbID}" name="resolution">
-                        <label for="uhd-${user.imdbID}">4K/UHD</label>
-                        Format:<br>
-                        <input type="checkbox" id="disc-${user.imdbID}" name="format" value="">
-                        <label for="disc-${user.imdbID}">Disc</label>
-                        <input type="checkbox" id="digital-${user.imdbID}" name="format">
-                        <label for="digital-${user.imdbID}">Digital</label>
-                      <br>
-                      <span id="change-${user.imdbID}"><button id="${user.imdbID}" class="add-btn text-center btn  btn-primary">Add to MovieDB</button></span></p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            `;
-            IMDbArray.push(user.imdbID);
-            displayedMovies.push(user);
-
-          }
-        }
-      });
-      document.getElementById('output').innerHTML = output;
-      console.log(displayedMovies);
-      displayedMovies.forEach(function(user){
-        if(user.Type ==="movie"){
-          document.getElementById(`${user.imdbID}`).addEventListener('click', function() {
-            addMovie(user.imdbID);
-          });
-        }
-      });
+    .then(data => {
+      let results = data.Search;
+      sortSearch(results);
     })
-    .catch(function(err){
+    .catch(err => {
       console.log(err);
     });
 } 
+
+function sortSearch(results){
+  let output = '';
+  let IMDbArray = [];
+  let displayedMovies = [];
+  results.forEach(movie => {
+    if(movie.Type==="movie"){
+      if(IMDbArray.includes(movie.imdbID)) {   
+        console.log("Movie already displayed");
+      } else {  
+        output += drawSearchResults(movie);
+        IMDbArray.push(movie.imdbID);
+        displayedMovies.push(movie);
+      }
+    }
+  });
+  document.getElementById('output').innerHTML = output;
+  activateAddMovieButtons(displayedMovies);
+}
+
+function drawSearchResults(movie) {
+  const searchBox = `
+  <div class="card mb-2 mr-3" style="max-width: 423px;">
+    <div class="row no-gutters">
+      <div class="col-md-4">
+        <img src="${movie.Poster}" class="card-img">
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <h5 class="card-title"><strong>${movie.Title}</strong></h5>
+          <p class="card-text"><a class="float-left" href="https://www.imdb.com/title/${movie.imdbID}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></p>
+          <p class="card-text text-center"><strong>Released: ${movie.Year}</strong></p>
+            <p class="formats">Resolution:<br>
+              <input type="checkbox" id="sd-${movie.imdbID}" name="resolution">
+              <label for="sd-${movie.imdbID}">DVD/SD</label>
+              <input type="checkbox" id="hd-${movie.imdbID}" name="resolution">
+              <label for="hd-${movie.imdbID}">Blu-ray/HD</label>
+              <input type="checkbox" id="uhd-${movie.imdbID}" name="resolution">
+              <label for="uhd-${movie.imdbID}">4K/UHD</label>
+              Format:<br>
+              <input type="checkbox" id="disc-${movie.imdbID}" name="format" value="">
+              <label for="disc-${movie.imdbID}">Disc</label>
+              <input type="checkbox" id="digital-${movie.imdbID}" name="format">
+              <label for="digital-${movie.imdbID}">Digital</label>
+            <br>
+            <span id="change-${movie.imdbID}"><button id="${movie.imdbID}" class="add-btn text-center btn  btn-primary">Add to MovieDB</button></span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+  return searchBox;
+}
+
+function activateAddMovieButtons(displayedMovies){
+  displayedMovies.forEach(movie => {
+    document.getElementById(`${movie.imdbID}`).addEventListener('click', function() {
+      checkMovieAdded(movie.imdbID)
+    });
+  });
+}
 
 // Get selected Movie imdb search from external API
-function addMovie(imdb) {
+function checkMovieAdded(imdb) {
   if (movieDB.some(e => e.IMDb === imdb)) {
-    console.log(e);
-    /* movies contains the imdb ID already */
-    console.log("Duplicate");
-    document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn btn-warning">Movie Already Exists</button>`;
-    return movieDB;
-  }
-  document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn btn-success">Movie Added</button>`;
-  const url = `http://www.omdbapi.com/?i=${imdb}&apikey=thewdb`;
-
-  var formRes = getFormatResolution(document.getElementById("sd-"+imdb).checked, document.getElementById("hd-"+imdb).checked, document.getElementById("uhd-"+imdb).checked, document.getElementById("disc-"+imdb).checked, document.getElementById("digital-"+imdb).checked);
-
-  fetch(url)
-    .then(function(res){
-      return res.json();
-    })
-    .then(function(data) {
-      let results = data;
-      const newMovie = {title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: formRes.format, res: formRes.res, IMDb: imdb};
-      movieDB.push(newMovie);
-      sortMovies();
-      for (let index = 0; index < movieDB.length-1; index++) {
-        if(movieDB[index].IMDb === movieDB[index+1].IMDb){
-          movieDB = movieDB.splice(index+1,1);
-        }
-      }
-      populateMovieList(movieDB);
-      return newMovie;
-    })
-    .catch(function(err){
-      console.log(err);
-    });
-} 
-
-function deleteMovie(index){
-  movieDB.splice(index, 1);
-  storeMovies(movieDB);
-  if(movieDB.length == 0){
-    document.location.reload();
+    // Checks to see if DB contains the movie already
+    console.log("Duplicate. Movie not added.");
+    document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn btn-warning">Movie Already Existed</button>`;
   } else {
-  populateMovieList(movieDB);
+    // Movie isn't in DB so it is added
+    addMovie(imdb);
+    document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn btn-success">Movie Added</button>`;
   }
 }
 
-function drawModals(index) {
+function addMovie(imdb) {
+  // Url specific to that movie's IMDb
+  const url = `http://www.omdbapi.com/?i=${imdb}&apikey=thewdb`;
+  // Form data for format and resolution
+  const format = getFormat(document.getElementById("disc-"+imdb).checked, document.getElementById("digital-"+imdb).checked);
+  const resolution = getResolution(document.getElementById("sd-"+imdb).checked, document.getElementById("hd-"+imdb).checked, document.getElementById("uhd-"+imdb).checked);
+  // Second API call for more specific info
+  fetch(url)
+    .then(res => {
+      return res.json();
+    })
+    .then(data => {
+      const results = data;
+      // Add movie to MovieDB using API call and form data
+      const newMovie = {title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, IMDb: imdb};
+      movieDB.push(newMovie);
+      sortMovies();
+      updateTableDisplay();
+    })
+    .catch(err => {
+      console.log(err);
+    });
+} 
 
+function drawEditModals(index) {
   modals += `
   <div class="modal fade" id="modal-${movieDB[index].IMDb}" tabindex="-1" role="dialog" aria-labelledby="${movieDB[index].IMDb}-Label" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -197,25 +200,23 @@ function drawModals(index) {
           </button>
         </div>
         <div class="modal-body">
-
-        <p class="formats">
-        Genre: <input type="text" class="modal-genre" id="genre-${movieDB[index].IMDb}" name="genre" value="${movieDB[index].genre}">
-        <br>
-        <br>
-        Resolution:
-        <input type="checkbox" id="sd-${movieDB[index].IMDb}" name="resolution">
-        <label for="sd-${movieDB[index].IMDb}">DVD/SD</label>
-        <input type="checkbox" id="hd-${movieDB[index].IMDb}" name="resolution">
-        <label for="hd-${movieDB[index].IMDb}">Blu-ray/HD</label>
-        <input type="checkbox" id="uhd-${movieDB[index].IMDb}" name="resolution">
-        <label for="uhd-${movieDB[index].IMDb}">4K/UHD</label><br><br>
-        Format:
-        <input type="checkbox" id="disc-${movieDB[index].IMDb}" name="format" value="">
-        <label for="disc-${movieDB[index].IMDb}">Disc</label>
-        <input type="checkbox" id="digital-${movieDB[index].IMDb}" name="format">
-        <label for="digital-${movieDB[index].IMDb}">Digital</label>
-        </p>
-
+          <p class="formats">
+            Genre: <input type="text" class="modal-genre" id="genre-${movieDB[index].IMDb}" name="genre" value="${movieDB[index].genre}">
+            <br>
+            <br>
+            Resolution:
+            <input type="checkbox" id="sd-${movieDB[index].IMDb}" name="resolution">
+            <label for="sd-${movieDB[index].IMDb}">DVD/SD</label>
+            <input type="checkbox" id="hd-${movieDB[index].IMDb}" name="resolution">
+            <label for="hd-${movieDB[index].IMDb}">Blu-ray/HD</label>
+            <input type="checkbox" id="uhd-${movieDB[index].IMDb}" name="resolution">
+            <label for="uhd-${movieDB[index].IMDb}">4K/UHD</label><br><br>
+            Format:
+            <input type="checkbox" id="disc-${movieDB[index].IMDb}" name="format" value="">
+            <label for="disc-${movieDB[index].IMDb}">Disc</label>
+            <input type="checkbox" id="digital-${movieDB[index].IMDb}" name="format">
+            <label for="digital-${movieDB[index].IMDb}">Digital</label>
+          </p>
         </div>
         <div class="modal-footer">
           <button type="button" id="close-${movieDB[index].IMDb}" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -225,48 +226,43 @@ function drawModals(index) {
     </div>
   </div>
   `;
-
 }
 
 function editMovie(index){
-
-
   document.getElementById(`close-${movieDB[index].IMDb}`).addEventListener('click', function() {
   });
   document.getElementById(`save-${movieDB[index].IMDb}`).addEventListener('click', function() {
-    var newFormRes = getFormatResolution(document.getElementById("sd-"+movieDB[index].IMDb).checked, document.getElementById("hd-"+movieDB[index].IMDb).checked, document.getElementById("uhd-"+movieDB[index].IMDb).checked, document.getElementById("disc-"+movieDB[index].IMDb).checked, document.getElementById("digital-"+movieDB[index].IMDb).checked);
+    // Update movie genre
     movieDB[index].genre = document.getElementById(`genre-${movieDB[index].IMDb}`).value;
-    movieDB[index].format = newFormRes.format;
-    movieDB[index].res = newFormRes.res;
+    // Update movie format
+    movieDB[index].format = getFormat(document.getElementById("disc-"+movieDB[index].IMDb).checked, document.getElementById("digital-"+movieDB[index].IMDb).checked);
+    // Update movie resolution
+    movieDB[index].res = getResolution(document.getElementById("sd-"+movieDB[index].IMDb).checked, document.getElementById("hd-"+movieDB[index].IMDb).checked, document.getElementById("uhd-"+movieDB[index].IMDb).checked);
+    // Calls to close modal automatically upon saving
     document.getElementById(`close-${movieDB[index].IMDb}`).click(); 
-    populateMovieList(movieDB);
+    updateTableDisplay();
   });
+}
 
-  
+function deleteMovie(index){
+  movieDB.splice(index, 1);
+  storeMovies(movieDB);
+  updateTableDisplay();
 }
 
 function storeMovies() {
   localStorage.setItem('movies', JSON.stringify(movieDB));
 }
 
-function getStoredMovies() {
-  if(JSON.parse(localStorage.getItem('movies')) == null){
-    populateMovieList(movieDB);
-  } else {
-    movieDB = JSON.parse(localStorage.getItem('movies'));
-    populateMovieList(movieDB);
-  }
-}
-
 function emptyDatabase() {
   movieDB = [];
   storeMovies(movieDB);
-  document.location.reload();
+  updateTableDisplay();
 }
 
 function makeDatabaseFile() {
-  var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(movieDB));
-  var downloadAnchorNode = document.createElement('a');
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(movieDB));
+  let downloadAnchorNode = document.createElement('a');
   downloadAnchorNode.setAttribute("href",     dataStr);
   downloadAnchorNode.setAttribute("download", "movies.json");
   document.body.appendChild(downloadAnchorNode); 
@@ -274,84 +270,66 @@ function makeDatabaseFile() {
   downloadAnchorNode.remove();
 }  
 
-function loadEventListeners() {
-  document.getElementById("bottom-btn").innerHTML = `
-  <button class="btn btn-info" id="download-btn">Export Database</button>
+function readDatabaseFile() {
+  document.getElementById('import-btn').innerHTML = `
+  <button class="btn btn-warning text-left" id="import">Import Selected File</button>`;
+  document.getElementById('import').onclick = function() {
+    let files = document.getElementById('selectFiles').files;
+    if (files.length <= 0) {
+      return false;
+    }
+    let fr = new FileReader();
+
+    fr.onload = e => { 
+      console.log(e);
+      const result = JSON.parse(e.target.result);
+      const stringMovies = JSON.stringify(result, null, 2);
+      movieDB = JSON.parse(stringMovies);
+      storeMovies();
+      updateTableDisplay();
+      document.getElementById('import-btn').innerHTML = '';
+    }
+
+    fr.readAsText(files.item(0));
+  };
+}
+
+function loadButtonListeners() {
+  document.getElementById("export-btn").innerHTML = `<button class="btn btn-info" id="download-btn">Export Database</button>`;
+  document.getElementById("empty-btn").innerHTML = `
   <button class="btn btn-info" id="empty">Remove all movies</button>`;
   document.getElementById('empty').addEventListener('click', function() {
-    document.getElementById("bottom-btn").innerHTML = `
-    <button class="btn btn-info" id="download-btn">Export Database</button>
+    document.getElementById("empty-btn").innerHTML = `
     <button class="btn btn-warning" id="confirm">Are you sure?</button>`;
     document.getElementById('confirm').addEventListener('click', function() {
-      document.getElementById("bottom-btn").innerHTML = `
-      <button class="btn btn-info" id="download-btn">Export Database</button>
+      document.getElementById("empty-btn").innerHTML = `
       <button class="btn btn-danger" id="double-confirm">Last chance to rethink</button>`;
       document.getElementById('double-confirm').addEventListener('click', function() {
         emptyDatabase();
       });
     });
   });
-
-  var download = document.getElementById('download-btn');
-
-  download.addEventListener('click', function () {
+  document.getElementById('download-btn').addEventListener('click', function () {
     makeDatabaseFile();    
   }, false);
 }
-var upload = document.querySelector(".file");
-upload.addEventListener('change', function() {
-  readDatabaseFile();
-})
 
-function readDatabaseFile() {
-  document.getElementById('import-btn').innerHTML = `
-  <button class="btn btn-warning text-left" id="import">Import Selected File</button>`;
-  document.getElementById('import').onclick = function() {
-    var files = document.getElementById('selectFiles').files;
-  if (files.length <= 0) {
-    return false;
+function getFormat(disc, digital){
+  let format = '';
+  // check digital or disc
+  if(disc && digital) {
+    format = "disc/digital";
+  } else if(disc && !digital){
+    format = "disc";
+  } else if(digital){
+    format = "digital";
   }
-
-  var fr = new FileReader();
-
-  fr.onload = function(e) { 
-  console.log(e);
-    var result = JSON.parse(e.target.result);
-    var stringMovies = JSON.stringify(result, null, 2);
-    movieDB = JSON.parse(stringMovies);
-    storeMovies();
-    populateMovieList();
-    document.getElementById('import-btn').innerHTML = '';
-  }
-
-  fr.readAsText(files.item(0));
-  };
+  return format;
 }
 
-function getSortTitle(name) {
-  var sortTitle = '';
-  var articles = ['THE', 'A', 'AN'];
-  if (articles.includes(name.substr(0,name.indexOf(' ')).toUpperCase())) {
-    sortTitle = name.substr(name.indexOf(' ')+1);
-  } else {
-    sortTitle = name;
-  }
-  return sortTitle;
-}
-
-function sortMovies(){
-  movieDB.sort(function(a, b) {
-    var textA = getSortTitle(a.title.toUpperCase());
-    var textB = getSortTitle(b.title.toUpperCase());
-    return (textA < textB) ? -1 : ((textA > textB) ? 1 : 0);
-});
-}
-
-function getFormatResolution(sd, hd, uhd, disc, digital){
-  let format, resolution;
-  let formatRes = {};
-  format = resolution = '';
-  // check for format
+function getResolution(sd, hd, uhd){
+  let resolution = '';
+  // check resolution
   if(sd) {
     if(hd && uhd) {
       resolution = "SD/HD/UHD";
@@ -369,16 +347,57 @@ function getFormatResolution(sd, hd, uhd, disc, digital){
   } else if (uhd) {
     resolution = "UHD";
   }
-  // check digital or disc
-  if(disc && digital) {
-    format = "disc/digital";
-  } else if(disc && !digital){
-    format = "disc";
-  } else if(digital){
-    format = "digital";
-  }
-  formatRes.format = format;
-  formatRes.res = resolution;
+  return resolution;
+}
 
-  return formatRes;
+function getSortTitle(name) {
+  let sortTitle = '';
+  const articles = ['THE', 'A', 'AN'];
+  if (articles.includes(name.substr(0,name.indexOf(' ')).toUpperCase())) {
+    sortTitle = name.substr(name.indexOf(' ')+1);
+  } else {
+    sortTitle = name;
+  }
+  return sortTitle;
+}
+
+function sortMovies(){
+  movieDB.sort((a, b) => {
+    let textA = getSortTitle(a.title.toUpperCase());
+    let textB = getSortTitle(b.title.toUpperCase());
+    return (textA < textB) ? -1 : ((textA > textB) ? 1 : 0);
+});
+}
+
+function drawTableRows(movie) {
+  let currentRow = 
+    `<tr id="row-${movieDB.indexOf(movie)+1}">
+      <td>${movieDB.indexOf(movie)+1}</td>
+      <td>${movie.title}</td>
+      <td>${movie.rating}</td>
+      <td>${movie.release}</td>
+      <td>${movie.runtime}</td>
+      <td>${movie.genre}</td>
+      <td>${movie.res}</td>
+      <td>${movie.format}</td>
+      <td><a class="imdb-logo" href="https://www.imdb.com/title/${movie.IMDb}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></td>
+      <td><a data-toggle="modal" data-target="#modal-${movie.IMDb}"><i class="fa fa-pencil-square-o pointer" id="edit-${movie.IMDb}" aria-hidden="true"></i></a></td>
+      <td><i class="fa fa-trash-o pointer" id="delete-${movie.IMDb}" aria-hidden="true"></i></td>
+    </tr>`;
+
+  return currentRow;
+}
+
+// Activate buttons for edit and deleting
+function enableEditDelete() {
+  movieDB.forEach(movie => {
+    document.getElementById(`delete-${movie.IMDb}`).addEventListener('click', function(){
+      deleteMovie(movieDB.indexOf(movie));
+    });
+    document.getElementById(`edit-${movie.IMDb}`).addEventListener('click', function(){
+      editMovie(movieDB.indexOf(movie));
+    });
+
+    drawEditModals(movieDB.indexOf(movie));
+  });
 }
