@@ -95,7 +95,7 @@ function sortSearch(results){
   let IMDbArray = [];
   let displayedMovies = [];
   results.forEach(movie => {
-    if(movie.Type==="movie"){
+    if(movie.Type != "game"){
       if(IMDbArray.includes(movie.imdbID)) {   
         console.log("Movie already displayed");
       } else {  
@@ -111,7 +111,7 @@ function sortSearch(results){
 
 function drawSearchResults(movie) {
   const searchBox = `
-  <div class="card mb-2 mr-3" style="max-width: 423px;">
+  <div class="card mx-auto mb-2 mr-3 " style="max-width: 423px;">
     <div class="row no-gutters">
       <div class="col-md-4">
         <img src="${movie.Poster}" class="card-img">
@@ -272,7 +272,7 @@ function makeDatabaseFile() {
 
 function readDatabaseFile() {
   document.getElementById('import-btn').innerHTML = `
-  <button class="btn btn-warning text-left" id="import">Import Selected File</button>`;
+  <a class="nav-link" id="import">Import Selected File</a>`;
   document.getElementById('import').onclick = function() {
     let files = document.getElementById('selectFiles').files;
     if (files.length <= 0) {
@@ -295,15 +295,15 @@ function readDatabaseFile() {
 }
 
 function loadButtonListeners() {
-  document.getElementById("export-btn").innerHTML = `<button class="btn btn-info" id="download-btn">Export Database</button>`;
+  document.getElementById("export-btn").innerHTML = `<a class="nav-link" id="download-btn">Export Database</a>`;
   document.getElementById("empty-btn").innerHTML = `
-  <button class="btn btn-info" id="empty">Remove all movies</button>`;
+  <a class="nav-link" id="empty">Empty Database</a>`;
   document.getElementById('empty').addEventListener('click', function() {
     document.getElementById("empty-btn").innerHTML = `
-    <button class="btn btn-warning" id="confirm">Are you sure?</button>`;
+    <a class="nav-link" id="confirm">Are you sure?</a>`;
     document.getElementById('confirm').addEventListener('click', function() {
       document.getElementById("empty-btn").innerHTML = `
-      <button class="btn btn-danger" id="double-confirm">Last chance to rethink</button>`;
+      <a class="nav-link" id="double-confirm">Last chance to rethink</a>`;
       document.getElementById('double-confirm').addEventListener('click', function() {
         emptyDatabase();
       });

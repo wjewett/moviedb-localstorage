@@ -11,32 +11,40 @@
   <title>Movie Database</title>
 </head>
 <body>
-  <div class="">
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
+    <div class="navbar-brand" href="#">MovieDB</div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav">
+        <li class="nav-item active">
+          <a class="nav-link" id="totalMovies"></a>
+        </li>
+        <li class="nav-item>"><a class="nav-link file">Import Database<input type="file" id="selectFiles" name="file"/></a></li>
+        <li class="nav-item"><span id="import-btn"></span></li>
+        <li class="nav-item"><span id="export-btn"></span></li>
+        <li class="nav-item"><span id="empty-btn"></span></li>
+      </ul>
+    </div>
+    <div class="form-inline my-2 my-lg-0" id="search-form">
+      <input class="form-control mr-sm-2" type="search" name="movie" id="search-box" placeholder="search for movies">
+      <button class="btn btn-outline-secondary my-2 mr-2 my-sm-0" id="search">Search</button>
+      <button class="btn btn-outline-secondary my-2 my-sm-0" id="clear-search">Clear</button>
+    </div>
+  </nav>
+
+  <div class="body">
     <div id="div-modals"></div>
     <div class="row">
-      <div class="search-form">
-        <h3 class="search-heading">Search to add movie</h3>
-        <div>
-          <div class="form-group">
-              <input class="form-control" type="search" name="movie" id="search-box" placeholder="search movie title">
-          </div>
-          <div class="form-group">
-              <button class="btn btn-lg btn-dark" id="search">Search movies</button>
-              <button class="btn btn-lg btn-secondary" id="clear-search">Clear search</button>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="container" id="alert-container"></div>
     <div class="container row text-center" id="output">
       <!-- To be filled by Javascript -->
     </div>
     <div class="movie-container">
-      <div class="row">
-      <div class="col-1-of-4"></div>
-      <div class="col-2-of-4"><h1 class='table-heading-database'>Movie Database</h1></div>
-      <div class="col-1-of-4"><h3 class="table-heading-database-secondary" id="totalMovies"></h3></div>
-      </div>
+
       <table id="movie-table" class="table table-striped table-bordered table-sm">
         <thead class="thead-dark text-center">
           <tr>
@@ -57,13 +65,6 @@
           <!-- To be filled by Javascript -->
         </tbody>
       </table>
-      <div class="form-group text-right">
-        <div class="file btn btn-info">Import Database<input type="file" id="selectFiles" name="file"/></div>
-        <span id="import-btn"></span>
-        <span id="export-btn" class="text-right"></span>
-        <span id="empty-btn" class="text-right">
-        </span>
-      </div>
     </div>
   </div>
 
