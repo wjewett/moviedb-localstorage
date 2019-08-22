@@ -12,7 +12,7 @@ function loadSearchAndImportListeners() {
     }
   });
   document.getElementById('search').addEventListener('click', function() {
-    getMovies(document.getElementById('search-box').value);
+    getMovieInfo(document.getElementById('search-box').value);
   });
   document.getElementById('clear-search').addEventListener('click', function() {
     document.getElementById('output').innerHTML = '';
@@ -75,20 +75,21 @@ function populateMovieTable() {
 }
 
 // Get from Movies external API
-function getMovies(search) {
-  const url = `http://www.omdbapi.com/?s=${search}&apikey=thewdb`;
-  fetch(url)
-    .then(res => {
-      return res.json();
-    })
-    .then(data => {
-      let results = data.Search;
-      sortSearch(results);
-    })
-    .catch(err => {
-      console.log(err);
-    });
-} 
+async function getMovieInfo(search) {
+  const url1 = `http://www.omdbapi.com/?s=${search}&apikey=thewdb`;
+  const url2 = `http://www.omdbapi.com/?t=${search}&apikey=thewdb`;
+
+  let res = await fetch(url1);
+  let data = await res.json();
+  if (data.hasOwnProperty('Search')){
+    data = data.Search;
+    sortSearch(data);
+  } else {
+    res = await fetch(url2);
+    data = await res.json();
+   sortSearch([data]);
+  }
+}
 
 function sortSearch(results){
   let output = '';
@@ -106,6 +107,11 @@ function sortSearch(results){
     }
   });
   document.getElementById('output').innerHTML = output;
+  window.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: 'smooth'
+  });
   activateAddMovieButtons(displayedMovies);
 }
 
@@ -189,6 +195,24 @@ function addMovie(imdb) {
 } 
 
 function drawEditModals(index) {
+  let sd, hd, uhd, disc, digital;
+  sd = hd = uhd = disc = digital = '';
+  if(movieDB[index].format.includes('disc')) {
+    disc = 'checked';
+  } 
+  if(movieDB[index].format.includes('digital')) {
+    digital = 'checked';
+  } 
+  if(movieDB[index].res.includes('UHD')) {
+    uhd = 'checked';
+  } 
+  if(movieDB[index].res.includes('HD')) {
+    hd = 'checked';
+  } 
+  if(movieDB[index].res.includes('SD')) {
+    sd = 'checked';
+  } 
+
   modals += `
   <div class="modal fade" id="modal-${movieDB[index].IMDb}" tabindex="-1" role="dialog" aria-labelledby="${movieDB[index].IMDb}-Label" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -205,16 +229,16 @@ function drawEditModals(index) {
             <br>
             <br>
             Resolution:
-            <input type="checkbox" id="sd-${movieDB[index].IMDb}" name="resolution">
+            <input type="checkbox" id="sd-${movieDB[index].IMDb}" name="resolution" ${sd}>
             <label for="sd-${movieDB[index].IMDb}">DVD/SD</label>
-            <input type="checkbox" id="hd-${movieDB[index].IMDb}" name="resolution">
+            <input type="checkbox" id="hd-${movieDB[index].IMDb}" name="resolution" ${hd}>
             <label for="hd-${movieDB[index].IMDb}">Blu-ray/HD</label>
-            <input type="checkbox" id="uhd-${movieDB[index].IMDb}" name="resolution">
+            <input type="checkbox" id="uhd-${movieDB[index].IMDb}" name="resolution" ${uhd}>
             <label for="uhd-${movieDB[index].IMDb}">4K/UHD</label><br><br>
             Format:
-            <input type="checkbox" id="disc-${movieDB[index].IMDb}" name="format" value="">
+            <input type="checkbox" id="disc-${movieDB[index].IMDb}" name="format" ${disc}>
             <label for="disc-${movieDB[index].IMDb}">Disc</label>
-            <input type="checkbox" id="digital-${movieDB[index].IMDb}" name="format">
+            <input type="checkbox" id="digital-${movieDB[index].IMDb}" name="format" ${digital}>
             <label for="digital-${movieDB[index].IMDb}">Digital</label>
           </p>
         </div>
@@ -295,12 +319,18 @@ function readDatabaseFile() {
 }
 
 function loadButtonListeners() {
+  document.getElementById('nevermind-btn').innerHTML = '';
   document.getElementById("export-btn").innerHTML = `<a class="nav-link" id="download-btn">Export Database</a>`;
   document.getElementById("empty-btn").innerHTML = `
   <a class="nav-link" id="empty">Empty Database</a>`;
   document.getElementById('empty').addEventListener('click', function() {
     document.getElementById("empty-btn").innerHTML = `
     <a class="nav-link" id="confirm">Are you sure?</a>`;
+    document.getElementById("nevermind-btn").innerHTML = `
+    <a class="nav-link" id="nevermind">Nevermind?</a>`;
+    document.getElementById('nevermind').addEventListener('click', function() {
+      loadButtonListeners();
+    })
     document.getElementById('confirm').addEventListener('click', function() {
       document.getElementById("empty-btn").innerHTML = `
       <a class="nav-link" id="double-confirm">Last chance to rethink</a>`;
@@ -335,6 +365,8 @@ function getResolution(sd, hd, uhd){
       resolution = "SD/HD/UHD";
     } else if (hd) {
       resolution = "SD/HD";
+    } else if (uhd) {
+      resolution = 'SD/UHD';
     } else {
       resolution = "SD";
     }
