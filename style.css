@@ -44,16 +44,6 @@ html{
   .row .col-2-of-4 {
     width: calc(((100% - 3 * 0rem) / 4) * 2 + 0rem); }
 
-.table-heading-database {
-  text-align: center;
-  text-transform: uppercase;
-}
-.table-heading-database-secondary {
-  text-align: right;
-  margin-bottom: 0px;
-  margin-top: 12px;
-}
-
 table {
   border-radius: 5px;
   overflow: hidden;

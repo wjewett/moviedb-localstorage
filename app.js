@@ -21,7 +21,21 @@ function loadSearchAndImportListeners() {
 
   document.querySelector(".file").addEventListener('change', function() {
     readDatabaseFile();
-  })
+  });
+
+  document.getElementById('filter').addEventListener('keyup', function() {
+    event.preventDefault();
+    if (event.keyCode === 13){
+      filterMovies();
+    }
+  });
+  document.getElementById('filter-enter').addEventListener('click', function() {
+    filterMovies();
+  });
+  document.getElementById('filter-clear').addEventListener('click', function() {
+    document.getElementById('filter').value = '';
+    updateTableDisplay(movieDB);
+  });
 }
 
 // Retrieve movies from Local Storage
@@ -29,13 +43,13 @@ function getStoredMovies() {
   if(JSON.parse(localStorage.getItem('movies')) != null){
     movieDB = JSON.parse(localStorage.getItem('movies'));
   }
-  updateTableDisplay();
+  updateTableDisplay(movieDB);
 }
 
 // Determine if there are movies and update display
-function updateTableDisplay(){
-  if(movieDB.length > 0){
-    populateMovieTable();
+function updateTableDisplay(movies){
+  if(movies.length > 0){
+    populateMovieTable(movies);
   } else {
     // Alert database is empty
     document.getElementById("alert-container").innerHTML = `
@@ -51,24 +65,23 @@ function updateTableDisplay(){
 }
 
 // Fill movie table with movies
-function populateMovieTable() {
+function populateMovieTable(movies) {
   loadButtonListeners();
-  storeMovies();
   document.getElementById("alert-container").innerHTML = ``;
   let movieRows = '';
-  movieDB.forEach(movie => {
-    movieRows += drawTableRows(movie);
+  movies.forEach(movie => {
+    movieRows += drawTableRows(movies, movie);
   });
 
   // Update movie counter
-  const totalMovies = movieDB.length + ' movie' + (movieDB.length === 1 ? '' : 's');
+  const totalMovies = movies.length + ' movie' + (movies.length === 1 ? '' : 's');
   document.getElementById('totalMovies').textContent = totalMovies;
   
   // Insert movie table into the DOM
   document.querySelector('.table-body').innerHTML = movieRows;
 
   // Create Edit movie modals
-  enableEditDelete();
+  enableEditDelete(movies);
   // Insert Edit movie modals into the DOM
   document.getElementById('div-modals').innerHTML = modals;
   modals = '';
@@ -187,7 +200,8 @@ function addMovie(imdb) {
       const newMovie = {title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, IMDb: imdb};
       movieDB.push(newMovie);
       sortMovies();
-      updateTableDisplay();
+      storeMovies();
+      updateTableDisplay(movieDB);
     })
     .catch(err => {
       console.log(err);
@@ -264,14 +278,14 @@ function editMovie(index){
     movieDB[index].res = getResolution(document.getElementById("sd-"+movieDB[index].IMDb).checked, document.getElementById("hd-"+movieDB[index].IMDb).checked, document.getElementById("uhd-"+movieDB[index].IMDb).checked);
     // Calls to close modal automatically upon saving
     document.getElementById(`close-${movieDB[index].IMDb}`).click(); 
-    updateTableDisplay();
+    updateTableDisplay(movieDB);
   });
 }
 
 function deleteMovie(index){
   movieDB.splice(index, 1);
-  storeMovies(movieDB);
-  updateTableDisplay();
+  storeMovies();
+  updateTableDisplay(movieDB);
 }
 
 function storeMovies() {
@@ -280,8 +294,8 @@ function storeMovies() {
 
 function emptyDatabase() {
   movieDB = [];
-  storeMovies(movieDB);
-  updateTableDisplay();
+  storeMovies();
+  updateTableDisplay(movieDB);
 }
 
 function makeDatabaseFile() {
@@ -310,7 +324,7 @@ function readDatabaseFile() {
       const stringMovies = JSON.stringify(result, null, 2);
       movieDB = JSON.parse(stringMovies);
       storeMovies();
-      updateTableDisplay();
+      updateTableDisplay(movieDB);
       document.getElementById('import-btn').innerHTML = '';
     }
 
@@ -401,10 +415,10 @@ function sortMovies(){
 });
 }
 
-function drawTableRows(movie) {
+function drawTableRows(movies, movie) {
   let currentRow = 
-    `<tr id="row-${movieDB.indexOf(movie)+1}">
-      <td>${movieDB.indexOf(movie)+1}</td>
+    `<tr id="row-${movies.indexOf(movie)+1}">
+      <td>${movies.indexOf(movie)+1}</td>
       <td>${movie.title}</td>
       <td>${movie.rating}</td>
       <td>${movie.release}</td>
@@ -421,15 +435,31 @@ function drawTableRows(movie) {
 }
 
 // Activate buttons for edit and deleting
-function enableEditDelete() {
-  movieDB.forEach(movie => {
+function enableEditDelete(movies) {
+  movies.forEach(movie => {
     document.getElementById(`delete-${movie.IMDb}`).addEventListener('click', function(){
-      deleteMovie(movieDB.indexOf(movie));
+      deleteMovie(movies.indexOf(movie));
     });
     document.getElementById(`edit-${movie.IMDb}`).addEventListener('click', function(){
-      editMovie(movieDB.indexOf(movie));
+      editMovie(movies.indexOf(movie));
     });
 
-    drawEditModals(movieDB.indexOf(movie));
+    drawEditModals(movies.indexOf(movie));
   });
+}
+
+// Filter the table by search
+function filterMovies() {
+  let filteredMovies = [];
+  let search = document.getElementById('filter').value.toLowerCase();
+  if(search != ''){ 
+    movieDB.forEach(movie => {
+      if (Object.values(movie).toString().toLowerCase().includes(search)) {
+        filteredMovies.push(movie);
+      }
+    })
+    updateTableDisplay(filteredMovies);
+  } else {
+    updateTableDisplay(movieDB);
+  }
 }
