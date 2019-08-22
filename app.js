@@ -27,9 +27,6 @@ function loadSearchAndImportListeners() {
     event.preventDefault();
       filterMovies();
   });
-  document.getElementById('filter-enter').addEventListener('click', function() {
-    filterMovies();
-  });
   document.getElementById('filter-clear').addEventListener('click', function() {
     document.getElementById('filter').value = '';
     updateTableDisplay(movieDB);
@@ -64,7 +61,7 @@ function updateTableDisplay(movies){
     // Clear out unusable displays
     document.querySelector('.table-body').innerHTML = '';
     document.getElementById("empty-btn").innerHTML = '';
-    document.getElementById("export-btn").innerHTML = '';
+    document.getElementById("export").style.display = 'none';
     document.getElementById('totalMovies').textContent = '';
   }
 }
@@ -213,57 +210,57 @@ function addMovie(imdb) {
     });
 } 
 
-function drawEditModals(index) {
+function drawEditModals(movies, index) {
   let sd, hd, uhd, disc, digital;
   sd = hd = uhd = disc = digital = '';
-  if(movieDB[index].format.includes('disc')) {
+  if(movies[index].format.includes('disc')) {
     disc = 'checked';
   } 
-  if(movieDB[index].format.includes('digital')) {
+  if(movies[index].format.includes('digital')) {
     digital = 'checked';
   } 
-  if(movieDB[index].res.includes('UHD')) {
+  if(movies[index].res.includes('UHD')) {
     uhd = 'checked';
   } 
-  if(movieDB[index].res.includes('HD')) {
+  if(movies[index].res.includes('HD')) {
     hd = 'checked';
   } 
-  if(movieDB[index].res.includes('SD')) {
+  if(movies[index].res.includes('SD')) {
     sd = 'checked';
   } 
 
   modals += `
-  <div class="modal fade" id="modal-${movieDB[index].IMDb}" tabindex="-1" role="dialog" aria-labelledby="${movieDB[index].IMDb}-Label" aria-hidden="true">
+  <div class="modal fade" id="modal-${movies[index].IMDb}" tabindex="-1" role="dialog" aria-labelledby="${movies[index].IMDb}-Label" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="${movieDB[index].IMDb}-Label">Update <strong>${movieDB[index].title}:&nbsp</strong></h5>
+          <h5 class="modal-title" id="${movies[index].IMDb}-Label">Update <strong>${movies[index].title}:&nbsp</strong></h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
           <p class="formats">
-            Genre: <input type="text" class="modal-genre" id="genre-${movieDB[index].IMDb}" name="genre" value="${movieDB[index].genre}">
+            Genre: <input type="text" class="modal-genre" id="genre-${movies[index].IMDb}" name="genre" value="${movies[index].genre}">
             <br>
             <br>
             Resolution:
-            <input type="checkbox" id="sd-${movieDB[index].IMDb}" name="resolution" ${sd}>
-            <label for="sd-${movieDB[index].IMDb}">DVD/SD</label>
-            <input type="checkbox" id="hd-${movieDB[index].IMDb}" name="resolution" ${hd}>
+            <input type="checkbox" id="sd-${movies[index].IMDb}" name="resolution" ${sd}>
+            <label for="sd-${movies[index].IMDb}">DVD/SD</label>
+            <input type="checkbox" id="hd-${movies[index].IMDb}" name="resolution" ${hd}>
             <label for="hd-${movieDB[index].IMDb}">Blu-ray/HD</label>
-            <input type="checkbox" id="uhd-${movieDB[index].IMDb}" name="resolution" ${uhd}>
-            <label for="uhd-${movieDB[index].IMDb}">4K/UHD</label><br><br>
+            <input type="checkbox" id="uhd-${movies[index].IMDb}" name="resolution" ${uhd}>
+            <label for="uhd-${movies[index].IMDb}">4K/UHD</label><br><br>
             Format:
-            <input type="checkbox" id="disc-${movieDB[index].IMDb}" name="format" ${disc}>
-            <label for="disc-${movieDB[index].IMDb}">Disc</label>
-            <input type="checkbox" id="digital-${movieDB[index].IMDb}" name="format" ${digital}>
-            <label for="digital-${movieDB[index].IMDb}">Digital</label>
+            <input type="checkbox" id="disc-${movies[index].IMDb}" name="format" ${disc}>
+            <label for="disc-${movies[index].IMDb}">Disc</label>
+            <input type="checkbox" id="digital-${movies[index].IMDb}" name="format" ${digital}>
+            <label for="digital-${movies[index].IMDb}">Digital</label>
           </p>
         </div>
         <div class="modal-footer">
-          <button type="button" id="close-${movieDB[index].IMDb}" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" id="save-${movieDB[index].IMDb}" class="btn btn-primary">Save changes</button>
+          <button type="button" id="close-${movies[index].IMDb}" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" id="save-${movies[index].IMDb}" class="btn btn-primary">Save changes</button>
         </div>
       </div>
     </div>
@@ -271,7 +268,8 @@ function drawEditModals(index) {
   `;
 }
 
-function editMovie(index){
+function editMovie(movies, tempIndex){
+  const index = movieDB.map(function(e) { return e.title; }).indexOf(movies[tempIndex].title);
   document.getElementById(`close-${movieDB[index].IMDb}`).addEventListener('click', function() {
   });
   document.getElementById(`save-${movieDB[index].IMDb}`).addEventListener('click', function() {
@@ -283,11 +281,13 @@ function editMovie(index){
     movieDB[index].res = getResolution(document.getElementById("sd-"+movieDB[index].IMDb).checked, document.getElementById("hd-"+movieDB[index].IMDb).checked, document.getElementById("uhd-"+movieDB[index].IMDb).checked);
     // Calls to close modal automatically upon saving
     document.getElementById(`close-${movieDB[index].IMDb}`).click(); 
-    updateTableDisplay(movieDB);
+    storeMovies();
+    updateTableDisplay(movies);
   });
 }
 
-function deleteMovie(index){
+function deleteMovie(movies, tempIndex){
+  const index = movieDB.map(function(e) { return e.title; }).indexOf(movies[tempIndex].title);
   movieDB.splice(index, 1);
   storeMovies();
   updateTableDisplay(movieDB);
@@ -298,7 +298,7 @@ function storeMovies() {
 }
 
 function emptyDatabase() {
-  document.getElementById("nevermind-btn").innerHTML = "";
+  document.getElementById("nevermind").style.display = "none";
   movieDB = [];
   storeMovies();
   updateTableDisplay(movieDB);
@@ -315,8 +315,7 @@ function makeDatabaseFile() {
 }  
 
 function readDatabaseFile() {
-  document.getElementById('import-btn').innerHTML = `
-  <a class="nav-link warning" id="import" style="color: rgba(232, 216, 22, .8);">Import Selected File</a>`;
+  document.getElementById('import').style.display = "block";
   document.getElementById('import').onclick = function() {
     let files = document.getElementById('selectFiles').files;
     if (files.length <= 0) {
@@ -339,27 +338,26 @@ function readDatabaseFile() {
 }
 
 function loadButtonListeners() {
-  document.getElementById('nevermind-btn').innerHTML = '';
-  document.getElementById("export-btn").innerHTML = `<a class="nav-link" id="download-btn">Export Database</a>`;
+  document.getElementById('nevermind').style.display = "none";
+  document.getElementById("export").style.display = "block";
   document.getElementById("empty-btn").innerHTML = `
-  <a class="nav-link" id="empty">Empty Database</a>`;
+  <a class="nav-link pointer" id="empty">Empty Database</a>`;
   document.getElementById('empty').addEventListener('click', function() {
     document.getElementById("empty-btn").innerHTML = `
-    <a class="nav-link" id="confirm">Are you sure?</a>`;
-    document.getElementById("nevermind-btn").innerHTML = `
-    <a class="nav-link" id="nevermind">Nevermind?</a>`;
+    <a class="nav-link pointer" id="confirm">Are you sure?</a>`;
+    document.getElementById("nevermind").style.display = "block";
     document.getElementById('nevermind').addEventListener('click', function() {
       loadButtonListeners();
     })
     document.getElementById('confirm').addEventListener('click', function() {
       document.getElementById("empty-btn").innerHTML = `
-      <a class="nav-link" id="double-confirm">Last chance to rethink</a>`;
+      <a class="nav-link pointer" id="double-confirm">Last chance to rethink</a>`;
       document.getElementById('double-confirm').addEventListener('click', function() {
         emptyDatabase();
       });
     });
   });
-  document.getElementById('download-btn').addEventListener('click', function () {
+  document.getElementById('export').addEventListener('click', function () {
     makeDatabaseFile();    
   }, false);
 }
@@ -444,13 +442,13 @@ function drawTableRows(movies, movie) {
 function enableEditDelete(movies) {
   movies.forEach(movie => {
     document.getElementById(`delete-${movie.IMDb}`).addEventListener('click', function(){
-      deleteMovie(movies.indexOf(movie));
+      deleteMovie(movies, movies.indexOf(movie));
     });
     document.getElementById(`edit-${movie.IMDb}`).addEventListener('click', function(){
-      editMovie(movies.indexOf(movie));
+      editMovie(movies, movies.indexOf(movie));
     });
 
-    drawEditModals(movies.indexOf(movie));
+    drawEditModals(movies, movies.indexOf(movie));
   });
 }
 

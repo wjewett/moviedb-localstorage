@@ -21,8 +21,22 @@ html{
     html {
       font-size: 93%; } }
 
-#totalMovies-span{ 
+#totalMovies-span { 
   margin-left: 1rem;
+}
+#import {
+  color: rgba(232, 216, 22, .8);
+  display: none;
+}
+#confirm {
+  color: rgba(232, 216, 22, .8);
+}
+#nevermind{
+  color: rgba(232, 216, 22, .8);
+  display: none;
+}
+#double-confirm{
+  color: rgba(232, 16, 22, .8);
 }
 .body {
   margin-top: 5rem;
