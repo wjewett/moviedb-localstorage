@@ -9,7 +9,14 @@ html{
       font-size: 62.5%; } }
   @media (max-width: 37.5em) {
     html {
-      font-size: 50%; } }
+      font-size: 50%; } 
+    .imdb-png {
+      width: 22px;
+      height: auto;
+    } }
+  @media (max-width: 31.5em) {
+    html {
+      font-size: 40%; } }
   @media (min-width: 112.5em) {
     html {
       font-size: 93%; } }
@@ -20,12 +27,14 @@ html{
 .body {
   margin-top: 5rem;
   margin-bottom: 5rem;
+  width: 100%;
 }
 .modal-genre {
   width: 100%
 }
 #alert-container {
   text-align: center;
+  padding-top: 6px;
 }
 
 .row {
@@ -45,8 +54,28 @@ html{
     width: calc(((100% - 3 * 0rem) / 4) * 2 + 0rem); }
 
 table {
-  border-radius: 5px;
+  width: 100%;
   overflow: hidden;
+  /* border-radius: 5px;
+  overflow: hidden; */
+}
+#filter-center {
+  width: 100%;
+}
+#filter-box {
+  padding: 5px;
+  margin-right: 1px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  text-align: center !important;
+  overflow: hidden;
+  width: 100%; 
+  box-sizing: border-box;
+  -webkit-box-sizing:border-box;
+  -moz-box-sizing: border-box;
+}
+thead {
+  padding-right: 5px;
 }
 input[type="checkbox"] {
   transform: scale(1);
@@ -57,12 +86,22 @@ input[type="checkbox"]:first-of-type {
   margin-left: auto;
 }
 .movie-container {
+  text-align: center !important;
   width: 90%;
   padding-right: 15px;
   padding-left: 15px;
   margin-right: auto;
   margin-left: auto;
 }
+@media (max-width: 37.5em) {
+  .movie-container {
+    text-align: center !important;
+    width: 100%;
+    padding-right: 0px;
+    padding-left: 0px;
+    margin-right: 0px;
+    margin-left: 0px;
+  } }
 .card-title {
   margin: 0.25rem auto !important;
 }

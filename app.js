@@ -25,9 +25,7 @@ function loadSearchAndImportListeners() {
 
   document.getElementById('filter').addEventListener('keyup', function() {
     event.preventDefault();
-    if (event.keyCode === 13){
       filterMovies();
-    }
   });
   document.getElementById('filter-enter').addEventListener('click', function() {
     filterMovies();
@@ -50,6 +48,13 @@ function getStoredMovies() {
 function updateTableDisplay(movies){
   if(movies.length > 0){
     populateMovieTable(movies);
+  } else if (movieDB.length > 0){
+    document.getElementById("alert-container").innerHTML = `
+    <div class="alert alert-danger" role="alert">
+      No movies match that filter.
+    </div>`;
+    document.querySelector('.table-body').innerHTML = '';
+    document.getElementById('totalMovies').textContent = '0 movies';
   } else {
     // Alert database is empty
     document.getElementById("alert-container").innerHTML = `
@@ -293,6 +298,7 @@ function storeMovies() {
 }
 
 function emptyDatabase() {
+  document.getElementById("nevermind-btn").innerHTML = "";
   movieDB = [];
   storeMovies();
   updateTableDisplay(movieDB);
@@ -310,7 +316,7 @@ function makeDatabaseFile() {
 
 function readDatabaseFile() {
   document.getElementById('import-btn').innerHTML = `
-  <a class="nav-link" id="import">Import Selected File</a>`;
+  <a class="nav-link warning" id="import" style="color: rgba(232, 216, 22, .8);">Import Selected File</a>`;
   document.getElementById('import').onclick = function() {
     let files = document.getElementById('selectFiles').files;
     if (files.length <= 0) {
@@ -426,7 +432,7 @@ function drawTableRows(movies, movie) {
       <td>${movie.genre}</td>
       <td>${movie.res}</td>
       <td>${movie.format}</td>
-      <td><a class="imdb-logo" href="https://www.imdb.com/title/${movie.IMDb}" target="_blank"><img src="imdb-logo.png" alt="imdb-logo"></a></td>
+      <td><a class="imdb-logo" href="https://www.imdb.com/title/${movie.IMDb}" target="_blank"><img class="imdb-png" src="imdb-logo.png" alt="imdb-logo"></a></td>
       <td><a data-toggle="modal" data-target="#modal-${movie.IMDb}"><i class="fa fa-pencil-square-o pointer" id="edit-${movie.IMDb}" aria-hidden="true"></i></a></td>
       <td><i class="fa fa-trash-o pointer" id="delete-${movie.IMDb}" aria-hidden="true"></i></td>
     </tr>`;
