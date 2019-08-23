@@ -269,7 +269,7 @@ function drawEditModals(movies, index) {
 }
 
 function editMovie(movies, tempIndex){
-  const index = movieDB.map(function(e) { return e.title; }).indexOf(movies[tempIndex].title);
+  const index = movieDB.map(function(e) { return e.IMDb; }).indexOf(movies[tempIndex].IMDb);
   document.getElementById(`close-${movieDB[index].IMDb}`).addEventListener('click', function() {
   });
   document.getElementById(`save-${movieDB[index].IMDb}`).addEventListener('click', function() {
@@ -287,9 +287,10 @@ function editMovie(movies, tempIndex){
 }
 
 function deleteMovie(movies, tempIndex){
-  const index = movieDB.map(function(e) { return e.title; }).indexOf(movies[tempIndex].title);
+  const index = movieDB.map(function(e) { return e.IMDb; }).indexOf(movies[tempIndex].IMDb);
   movieDB.splice(index, 1);
   storeMovies();
+  document.getElementById('filter').value = '';
   updateTableDisplay(movieDB);
 }
 
