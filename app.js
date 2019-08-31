@@ -31,6 +31,10 @@ function loadSearchAndImportListeners() {
     document.getElementById('filter').value = '';
     updateTableDisplay(movieDB);
   });
+  document.getElementById('nav-clear').addEventListener('click', function(){
+    document.getElementById('filter-clear').click();
+    document.getElementById('clear-search').click();
+  })
 }
 
 // Retrieve movies from Local Storage
@@ -91,8 +95,8 @@ function populateMovieTable(movies) {
 
 // Get from Movies external API
 async function getMovieInfo(search) {
-  const url1 = `http://www.omdbapi.com/?s=${search}&apikey=thewdb`;
-  const url2 = `http://www.omdbapi.com/?t=${search}&apikey=thewdb`;
+  const url1 = `http://www.omdbapi.com/?s=${search}&apikey=25b07f14`;
+  const url2 = `http://www.omdbapi.com/?t=${search}&apikey=25b07f14`;
 
   let res = await fetch(url1);
   let data = await res.json();
@@ -187,7 +191,7 @@ function checkMovieAdded(imdb) {
 
 function addMovie(imdb) {
   // Url specific to that movie's IMDb
-  const url = `http://www.omdbapi.com/?i=${imdb}&apikey=thewdb`;
+  const url = `http://www.omdbapi.com/?i=${imdb}&apikey=25b07f14`;
   // Form data for format and resolution
   const format = getFormat(document.getElementById("disc-"+imdb).checked, document.getElementById("digital-"+imdb).checked);
   const resolution = getResolution(document.getElementById("sd-"+imdb).checked, document.getElementById("hd-"+imdb).checked, document.getElementById("uhd-"+imdb).checked);
