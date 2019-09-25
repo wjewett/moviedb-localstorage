@@ -5,137 +5,147 @@ loadSearchAndImportListeners();
 getStoredMovies();
 
 function loadSearchAndImportListeners() {
-  document.getElementById("search-box").addEventListener("keyup", function(event) {
-    event.preventDefault();
-    if (event.keyCode === 13) {
-        document.getElementById("search").click();
-    }
-  });
-  document.getElementById('search').addEventListener('click', function() {
-    getMovieInfo(document.getElementById('search-box').value);
-  });
-  document.getElementById('clear-search').addEventListener('click', function() {
-    document.getElementById('output').innerHTML = '';
-    document.getElementById('search-box').value = '';
-  });
+	document.getElementById('search-box').addEventListener('keyup', function(event) {
+		event.preventDefault();
+		if (event.keyCode === 13) {
+			document.getElementById('search').click();
+		}
+	});
+	document.getElementById('seed').addEventListener('click', function(event) {
+		fetch('movies.json').then((res) => res.json()).then((data) => {
+			let result = data;
+			console.log(data);
+			const stringMovies = JSON.stringify(result, null, 2);
+			movieDB = JSON.parse(stringMovies);
+			storeMovies();
+			updateTableDisplay(movieDB);
+		});
+	});
+	document.getElementById('search').addEventListener('click', function() {
+		getMovieInfo(document.getElementById('search-box').value);
+	});
+	document.getElementById('clear-search').addEventListener('click', function() {
+		document.getElementById('output').innerHTML = '';
+		document.getElementById('search-box').value = '';
+	});
 
-  document.querySelector(".file").addEventListener('change', function() {
-    readDatabaseFile();
-  });
+	document.querySelector('.file').addEventListener('change', function() {
+		readDatabaseFile();
+	});
 
-  document.getElementById('filter').addEventListener('keyup', function() {
-    event.preventDefault();
-      filterMovies();
-  });
-  document.getElementById('filter-clear').addEventListener('click', function() {
-    document.getElementById('filter').value = '';
-    updateTableDisplay(movieDB);
-  });
-  document.getElementById('nav-clear').addEventListener('click', function(){
-    document.getElementById('filter-clear').click();
-    document.getElementById('clear-search').click();
-  })
+	document.getElementById('filter').addEventListener('keyup', function() {
+		event.preventDefault();
+		filterMovies();
+	});
+	document.getElementById('filter-clear').addEventListener('click', function() {
+		document.getElementById('filter').value = '';
+		updateTableDisplay(movieDB);
+	});
+	document.getElementById('nav-clear').addEventListener('click', function() {
+		document.getElementById('filter-clear').click();
+		document.getElementById('clear-search').click();
+	});
 }
 
 // Retrieve movies from Local Storage
 function getStoredMovies() {
-  if(JSON.parse(localStorage.getItem('movies')) != null){
-    movieDB = JSON.parse(localStorage.getItem('movies'));
-  }
-  updateTableDisplay(movieDB);
+	if (JSON.parse(localStorage.getItem('movies')) != null) {
+		movieDB = JSON.parse(localStorage.getItem('movies'));
+	}
+	updateTableDisplay(movieDB);
 }
 
 // Determine if there are movies and update display
-function updateTableDisplay(movies){
-  if(movies.length > 0){
-    populateMovieTable(movies);
-  } else if (movieDB.length > 0){
-    document.getElementById("alert-container").innerHTML = `
+function updateTableDisplay(movies) {
+	if (movies.length > 0) {
+		populateMovieTable(movies);
+	} else if (movieDB.length > 0) {
+		document.getElementById('alert-container').innerHTML = `
     <div class="alert alert-danger" role="alert">
       No movies match that filter.
     </div>`;
-    document.querySelector('.table-body').innerHTML = '';
-    document.getElementById('totalMovies').textContent = '0 movies';
-  } else {
-    // Alert database is empty
-    document.getElementById("alert-container").innerHTML = `
+		document.querySelector('.table-body').innerHTML = '';
+		document.getElementById('totalMovies').textContent = '0 movies';
+	} else {
+		// Alert database is empty
+		document.getElementById('alert-container').innerHTML = `
     <div class="alert alert-danger" role="alert">
       You have no movies in your database. Search for movies to add.
     </div>`;
-    // Clear out unusable displays
-    document.querySelector('.table-body').innerHTML = '';
-    document.getElementById("empty-btn").innerHTML = '';
-    document.getElementById("export").style.display = 'none';
-    document.getElementById('totalMovies').textContent = '';
-  }
+		// Clear out unusable displays
+		document.querySelector('.table-body').innerHTML = '';
+		document.getElementById('empty-btn').innerHTML = '';
+		document.getElementById('export').style.display = 'none';
+		document.getElementById('totalMovies').textContent = '';
+	}
 }
 
 // Fill movie table with movies
 function populateMovieTable(movies) {
-  loadButtonListeners();
-  document.getElementById("alert-container").innerHTML = ``;
-  let movieRows = '';
-  movies.forEach(movie => {
-    movieRows += drawTableRows(movies, movie);
-  });
+	loadButtonListeners();
+	document.getElementById('alert-container').innerHTML = ``;
+	let movieRows = '';
+	movies.forEach((movie) => {
+		movieRows += drawTableRows(movies, movie);
+	});
 
-  // Update movie counter
-  const totalMovies = movies.length + ' movie' + (movies.length === 1 ? '' : 's');
-  document.getElementById('totalMovies').textContent = totalMovies;
-  
-  // Insert movie table into the DOM
-  document.querySelector('.table-body').innerHTML = movieRows;
+	// Update movie counter
+	const totalMovies = movies.length + ' movie' + (movies.length === 1 ? '' : 's');
+	document.getElementById('totalMovies').textContent = totalMovies;
 
-  // Create Edit movie modals
-  enableEditDelete(movies);
-  // Insert Edit movie modals into the DOM
-  document.getElementById('div-modals').innerHTML = modals;
-  modals = '';
+	// Insert movie table into the DOM
+	document.querySelector('.table-body').innerHTML = movieRows;
+
+	// Create Edit movie modals
+	enableEditDelete(movies);
+	// Insert Edit movie modals into the DOM
+	document.getElementById('div-modals').innerHTML = modals;
+	modals = '';
 }
 
 // Get from Movies external API
 async function getMovieInfo(search) {
-  const url1 = `http://www.omdbapi.com/?s=${search}&apikey=25b07f14`;
-  const url2 = `http://www.omdbapi.com/?t=${search}&apikey=25b07f14`;
+	const url1 = `http://www.omdbapi.com/?s=${search}&apikey=25b07f14`;
+	const url2 = `http://www.omdbapi.com/?t=${search}&apikey=25b07f14`;
 
-  let res = await fetch(url1);
-  let data = await res.json();
-  if (data.hasOwnProperty('Search')){
-    data = data.Search;
-    sortSearch(data);
-  } else {
-    res = await fetch(url2);
-    data = await res.json();
-   sortSearch([data]);
-  }
+	let res = await fetch(url1);
+	let data = await res.json();
+	if (data.hasOwnProperty('Search')) {
+		data = data.Search;
+		sortSearch(data);
+	} else {
+		res = await fetch(url2);
+		data = await res.json();
+		sortSearch([ data ]);
+	}
 }
 
-function sortSearch(results){
-  let output = '';
-  let IMDbArray = [];
-  let displayedMovies = [];
-  results.forEach(movie => {
-    if(movie.Type != "game"){
-      if(IMDbArray.includes(movie.imdbID)) {   
-        console.log("Movie already displayed");
-      } else {  
-        output += drawSearchResults(movie);
-        IMDbArray.push(movie.imdbID);
-        displayedMovies.push(movie);
-      }
-    }
-  });
-  document.getElementById('output').innerHTML = output;
-  window.scrollTo({
-    top: 0,
-    left: 0,
-    behavior: 'smooth'
-  });
-  activateAddMovieButtons(displayedMovies);
+function sortSearch(results) {
+	let output = '';
+	let IMDbArray = [];
+	let displayedMovies = [];
+	results.forEach((movie) => {
+		if (movie.Type != 'game') {
+			if (IMDbArray.includes(movie.imdbID)) {
+				console.log('Movie already displayed');
+			} else {
+				output += drawSearchResults(movie);
+				IMDbArray.push(movie.imdbID);
+				displayedMovies.push(movie);
+			}
+		}
+	});
+	document.getElementById('output').innerHTML = output;
+	window.scrollTo({
+		top: 0,
+		left: 0,
+		behavior: 'smooth'
+	});
+	activateAddMovieButtons(displayedMovies);
 }
 
 function drawSearchResults(movie) {
-  const searchBox = `
+	const searchBox = `
   <div class="card mx-auto mb-2 mr-3 " style="max-width: 423px;">
     <div class="row no-gutters">
       <div class="col-md-4">
@@ -165,75 +175,75 @@ function drawSearchResults(movie) {
     </div>
   </div>
   `;
-  return searchBox;
+	return searchBox;
 }
 
-function activateAddMovieButtons(displayedMovies){
-  displayedMovies.forEach(movie => {
-    document.getElementById(`${movie.imdbID}`).addEventListener('click', function() {
-      checkMovieAdded(movie.imdbID)
-    });
-  });
+function activateAddMovieButtons(displayedMovies) {
+	displayedMovies.forEach((movie) => {
+		document.getElementById(`${movie.imdbID}`).addEventListener('click', function() {
+			checkMovieAdded(movie.imdbID);
+		});
+	});
 }
 
 // Get selected Movie imdb search from external API
 function checkMovieAdded(imdb) {
-  if (movieDB.some(e => e.IMDb === imdb)) {
-    // Checks to see if DB contains the movie already
-    console.log("Duplicate. Movie not added.");
-    document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn btn-warning">Movie Already Existed</button>`;
-  } else {
-    // Movie isn't in DB so it is added
-    addMovie(imdb);
-    document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn btn-success">Movie Added</button>`;
-  }
+	if (movieDB.some((e) => e.IMDb === imdb)) {
+		// Checks to see if DB contains the movie already
+		console.log('Duplicate. Movie not added.');
+		document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn btn-warning">Movie Already Existed</button>`;
+	} else {
+		// Movie isn't in DB so it is added
+		addMovie(imdb);
+		document.getElementById(`change-${imdb}`).innerHTML = `<button class="btn-pressed btn btn-success">Movie Added</button>`;
+	}
 }
 
 function addMovie(imdb) {
-  // Url specific to that movie's IMDb
-  const url = `http://www.omdbapi.com/?i=${imdb}&apikey=25b07f14`;
-  // Form data for format and resolution
-  const format = getFormat(document.getElementById("disc-"+imdb).checked, document.getElementById("digital-"+imdb).checked);
-  const resolution = getResolution(document.getElementById("sd-"+imdb).checked, document.getElementById("hd-"+imdb).checked, document.getElementById("uhd-"+imdb).checked);
-  // Second API call for more specific info
-  fetch(url)
-    .then(res => {
-      return res.json();
-    })
-    .then(data => {
-      const results = data;
-      // Add movie to MovieDB using API call and form data
-      const newMovie = {title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, IMDb: imdb};
-      movieDB.push(newMovie);
-      sortMovies();
-      storeMovies();
-      updateTableDisplay(movieDB);
-    })
-    .catch(err => {
-      console.log(err);
-    });
-} 
+	// Url specific to that movie's IMDb
+	const url = `http://www.omdbapi.com/?i=${imdb}&apikey=25b07f14`;
+	// Form data for format and resolution
+	const format = getFormat(document.getElementById('disc-' + imdb).checked, document.getElementById('digital-' + imdb).checked);
+	const resolution = getResolution(document.getElementById('sd-' + imdb).checked, document.getElementById('hd-' + imdb).checked, document.getElementById('uhd-' + imdb).checked);
+	// Second API call for more specific info
+	fetch(url)
+		.then((res) => {
+			return res.json();
+		})
+		.then((data) => {
+			const results = data;
+			// Add movie to MovieDB using API call and form data
+			const newMovie = { title: results.Title, rating: results.Rated, runtime: results.Runtime, release: results.Released, genre: results.Genre, format: format, res: resolution, IMDb: imdb };
+			movieDB.push(newMovie);
+			sortMovies();
+			storeMovies();
+			updateTableDisplay(movieDB);
+		})
+		.catch((err) => {
+			console.log(err);
+		});
+}
 
 function drawEditModals(movies, index) {
-  let sd, hd, uhd, disc, digital;
-  sd = hd = uhd = disc = digital = '';
-  if(movies[index].format.includes('disc')) {
-    disc = 'checked';
-  } 
-  if(movies[index].format.includes('digital')) {
-    digital = 'checked';
-  } 
-  if(movies[index].res.includes('UHD')) {
-    uhd = 'checked';
-  } 
-  if(movies[index].res.includes('HD')) {
-    hd = 'checked';
-  } 
-  if(movies[index].res.includes('SD')) {
-    sd = 'checked';
-  } 
+	let sd, hd, uhd, disc, digital;
+	sd = hd = uhd = disc = digital = '';
+	if (movies[index].format.includes('disc')) {
+		disc = 'checked';
+	}
+	if (movies[index].format.includes('digital')) {
+		digital = 'checked';
+	}
+	if (movies[index].res.includes('UHD')) {
+		uhd = 'checked';
+	}
+	if (movies[index].res.includes('HD')) {
+		hd = 'checked';
+	}
+	if (movies[index].res.includes('SD')) {
+		sd = 'checked';
+	}
 
-  modals += `
+	modals += `
   <div class="modal fade" id="modal-${movies[index].IMDb}" tabindex="-1" role="dialog" aria-labelledby="${movies[index].IMDb}-Label" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -272,162 +282,176 @@ function drawEditModals(movies, index) {
   `;
 }
 
-function editMovie(movies, tempIndex){
-  const index = movieDB.map(function(e) { return e.IMDb; }).indexOf(movies[tempIndex].IMDb);
-  document.getElementById(`close-${movieDB[index].IMDb}`).addEventListener('click', function() {
-  });
-  document.getElementById(`save-${movieDB[index].IMDb}`).addEventListener('click', function() {
-    // Update movie genre
-    movieDB[index].genre = document.getElementById(`genre-${movieDB[index].IMDb}`).value;
-    // Update movie format
-    movieDB[index].format = getFormat(document.getElementById("disc-"+movieDB[index].IMDb).checked, document.getElementById("digital-"+movieDB[index].IMDb).checked);
-    // Update movie resolution
-    movieDB[index].res = getResolution(document.getElementById("sd-"+movieDB[index].IMDb).checked, document.getElementById("hd-"+movieDB[index].IMDb).checked, document.getElementById("uhd-"+movieDB[index].IMDb).checked);
-    // Calls to close modal automatically upon saving
-    document.getElementById(`close-${movieDB[index].IMDb}`).click(); 
-    storeMovies();
-    updateTableDisplay(movies);
-  });
+function editMovie(movies, tempIndex) {
+	const index = movieDB
+		.map(function(e) {
+			return e.IMDb;
+		})
+		.indexOf(movies[tempIndex].IMDb);
+	document.getElementById(`close-${movieDB[index].IMDb}`).addEventListener('click', function() {});
+	document.getElementById(`save-${movieDB[index].IMDb}`).addEventListener('click', function() {
+		// Update movie genre
+		movieDB[index].genre = document.getElementById(`genre-${movieDB[index].IMDb}`).value;
+		// Update movie format
+		movieDB[index].format = getFormat(document.getElementById('disc-' + movieDB[index].IMDb).checked, document.getElementById('digital-' + movieDB[index].IMDb).checked);
+		// Update movie resolution
+		movieDB[index].res = getResolution(
+			document.getElementById('sd-' + movieDB[index].IMDb).checked,
+			document.getElementById('hd-' + movieDB[index].IMDb).checked,
+			document.getElementById('uhd-' + movieDB[index].IMDb).checked
+		);
+		// Calls to close modal automatically upon saving
+		document.getElementById(`close-${movieDB[index].IMDb}`).click();
+		storeMovies();
+		updateTableDisplay(movies);
+	});
 }
 
-function deleteMovie(movies, tempIndex){
-  const index = movieDB.map(function(e) { return e.IMDb; }).indexOf(movies[tempIndex].IMDb);
-  movieDB.splice(index, 1);
-  storeMovies();
-  document.getElementById('filter').value = '';
-  updateTableDisplay(movieDB);
+function deleteMovie(movies, tempIndex) {
+	const index = movieDB
+		.map(function(e) {
+			return e.IMDb;
+		})
+		.indexOf(movies[tempIndex].IMDb);
+	movieDB.splice(index, 1);
+	storeMovies();
+	document.getElementById('filter').value = '';
+	updateTableDisplay(movieDB);
 }
 
 function storeMovies() {
-  localStorage.setItem('movies', JSON.stringify(movieDB));
+	localStorage.setItem('movies', JSON.stringify(movieDB));
 }
 
 function emptyDatabase() {
-  document.getElementById("nevermind").style.display = "none";
-  movieDB = [];
-  storeMovies();
-  updateTableDisplay(movieDB);
+	document.getElementById('nevermind').style.display = 'none';
+	movieDB = [];
+	storeMovies();
+	updateTableDisplay(movieDB);
 }
 
 function makeDatabaseFile() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(movieDB));
-  let downloadAnchorNode = document.createElement('a');
-  downloadAnchorNode.setAttribute("href",     dataStr);
-  downloadAnchorNode.setAttribute("download", "movies.json");
-  document.body.appendChild(downloadAnchorNode); 
-  downloadAnchorNode.click();
-  downloadAnchorNode.remove();
-}  
+	const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(movieDB));
+	let downloadAnchorNode = document.createElement('a');
+	downloadAnchorNode.setAttribute('href', dataStr);
+	downloadAnchorNode.setAttribute('download', 'movies.json');
+	document.body.appendChild(downloadAnchorNode);
+	downloadAnchorNode.click();
+	downloadAnchorNode.remove();
+}
 
 function readDatabaseFile() {
-  document.getElementById('import').style.display = "block";
-  document.getElementById('import').onclick = function() {
-    let files = document.getElementById('selectFiles').files;
-    if (files.length <= 0) {
-      return false;
-    }
-    let fr = new FileReader();
+	document.getElementById('import').style.display = 'block';
+	document.getElementById('import').onclick = function() {
+		let files = document.getElementById('selectFiles').files;
+		if (files.length <= 0) {
+			return false;
+		}
+		let fr = new FileReader();
 
-    fr.onload = e => { 
-      console.log(e);
-      const result = JSON.parse(e.target.result);
-      const stringMovies = JSON.stringify(result, null, 2);
-      movieDB = JSON.parse(stringMovies);
-      storeMovies();
-      updateTableDisplay(movieDB);
-      document.getElementById('import-btn').innerHTML = '';
-    }
+		fr.onload = (e) => {
+			console.log(e);
+			const result = JSON.parse(e.target.result);
+			const stringMovies = JSON.stringify(result, null, 2);
+			movieDB = JSON.parse(stringMovies);
+			storeMovies();
+			updateTableDisplay(movieDB);
+			document.getElementById('import-btn').innerHTML = '';
+		};
 
-    fr.readAsText(files.item(0));
-  };
+		fr.readAsText(files.item(0));
+	};
 }
 
 function loadButtonListeners() {
-  document.getElementById('nevermind').style.display = "none";
-  document.getElementById("export").style.display = "block";
-  document.getElementById("empty-btn").innerHTML = `
+	document.getElementById('nevermind').style.display = 'none';
+	document.getElementById('export').style.display = 'block';
+	document.getElementById('empty-btn').innerHTML = `
   <a class="nav-link pointer" id="empty">Empty Database</a>`;
-  document.getElementById('empty').addEventListener('click', function() {
-    document.getElementById("empty-btn").innerHTML = `
+	document.getElementById('empty').addEventListener('click', function() {
+		document.getElementById('empty-btn').innerHTML = `
     <a class="nav-link pointer" id="confirm">Are you sure?</a>`;
-    document.getElementById("nevermind").style.display = "block";
-    document.getElementById('nevermind').addEventListener('click', function() {
-      loadButtonListeners();
-    })
-    document.getElementById('confirm').addEventListener('click', function() {
-      document.getElementById("empty-btn").innerHTML = `
+		document.getElementById('nevermind').style.display = 'block';
+		document.getElementById('nevermind').addEventListener('click', function() {
+			loadButtonListeners();
+		});
+		document.getElementById('confirm').addEventListener('click', function() {
+			document.getElementById('empty-btn').innerHTML = `
       <a class="nav-link pointer" id="double-confirm">Last chance to rethink</a>`;
-      document.getElementById('double-confirm').addEventListener('click', function() {
-        emptyDatabase();
-      });
-    });
-  });
-  document.getElementById('export').addEventListener('click', function () {
-    makeDatabaseFile();    
-  }, false);
+			document.getElementById('double-confirm').addEventListener('click', function() {
+				emptyDatabase();
+			});
+		});
+	});
+	document.getElementById('export').addEventListener(
+		'click',
+		function() {
+			makeDatabaseFile();
+		},
+		false
+	);
 }
 
-function getFormat(disc, digital){
-  let format = '';
-  // check digital or disc
-  if(disc && digital) {
-    format = "disc/digital";
-  } else if(disc && !digital){
-    format = "disc";
-  } else if(digital){
-    format = "digital";
-  }
-  return format;
+function getFormat(disc, digital) {
+	let format = '';
+	// check digital or disc
+	if (disc && digital) {
+		format = 'disc/digital';
+	} else if (disc && !digital) {
+		format = 'disc';
+	} else if (digital) {
+		format = 'digital';
+	}
+	return format;
 }
 
-function getResolution(sd, hd, uhd){
-  let resolution = '';
-  // check resolution
-  if(sd) {
-    if(hd && uhd) {
-      resolution = "SD/HD/UHD";
-    } else if (hd) {
-      resolution = "SD/HD";
-    } else if (uhd) {
-      resolution = 'SD/UHD';
-    } else {
-      resolution = "SD";
-    }
-  } else if(hd) {
-    if(uhd){
-      resolution = "HD/UHD";
-    } else {
-      resolution = "HD";
-    }
-  } else if (uhd) {
-    resolution = "UHD";
-  }
-  return resolution;
+function getResolution(sd, hd, uhd) {
+	let resolution = '';
+	// check resolution
+	if (sd) {
+		if (hd && uhd) {
+			resolution = 'SD/HD/UHD';
+		} else if (hd) {
+			resolution = 'SD/HD';
+		} else if (uhd) {
+			resolution = 'SD/UHD';
+		} else {
+			resolution = 'SD';
+		}
+	} else if (hd) {
+		if (uhd) {
+			resolution = 'HD/UHD';
+		} else {
+			resolution = 'HD';
+		}
+	} else if (uhd) {
+		resolution = 'UHD';
+	}
+	return resolution;
 }
 
 function getSortTitle(name) {
-  let sortTitle = '';
-  const articles = ['THE', 'A', 'AN'];
-  if (articles.includes(name.substr(0,name.indexOf(' ')).toUpperCase())) {
-    sortTitle = name.substr(name.indexOf(' ')+1);
-  } else {
-    sortTitle = name;
-  }
-  return sortTitle;
+	let sortTitle = '';
+	const articles = [ 'THE', 'A', 'AN' ];
+	if (articles.includes(name.substr(0, name.indexOf(' ')).toUpperCase())) {
+		sortTitle = name.substr(name.indexOf(' ') + 1);
+	} else {
+		sortTitle = name;
+	}
+	return sortTitle;
 }
 
-function sortMovies(){
-  movieDB.sort((a, b) => {
-    let textA = getSortTitle(a.title.toUpperCase());
-    let textB = getSortTitle(b.title.toUpperCase());
-    return (textA < textB) ? -1 : ((textA > textB) ? 1 : 0);
-});
+function sortMovies() {
+	movieDB.sort((a, b) => {
+		let textA = getSortTitle(a.title.toUpperCase());
+		let textB = getSortTitle(b.title.toUpperCase());
+		return textA < textB ? -1 : textA > textB ? 1 : 0;
+	});
 }
 
 function drawTableRows(movies, movie) {
-  let currentRow = 
-    `<tr id="row-${movies.indexOf(movie)+1}">
-      <td>${movies.indexOf(movie)+1}</td>
+	let currentRow = `<tr id="row-${movies.indexOf(movie) + 1}">
+      <td>${movies.indexOf(movie) + 1}</td>
       <td>${movie.title}</td>
       <td>${movie.rating}</td>
       <td>${movie.release}</td>
@@ -440,35 +464,35 @@ function drawTableRows(movies, movie) {
       <td><i class="fa fa-trash-o pointer" id="delete-${movie.IMDb}" aria-hidden="true"></i></td>
     </tr>`;
 
-  return currentRow;
+	return currentRow;
 }
 
 // Activate buttons for edit and deleting
 function enableEditDelete(movies) {
-  movies.forEach(movie => {
-    document.getElementById(`delete-${movie.IMDb}`).addEventListener('click', function(){
-      deleteMovie(movies, movies.indexOf(movie));
-    });
-    document.getElementById(`edit-${movie.IMDb}`).addEventListener('click', function(){
-      editMovie(movies, movies.indexOf(movie));
-    });
+	movies.forEach((movie) => {
+		document.getElementById(`delete-${movie.IMDb}`).addEventListener('click', function() {
+			deleteMovie(movies, movies.indexOf(movie));
+		});
+		document.getElementById(`edit-${movie.IMDb}`).addEventListener('click', function() {
+			editMovie(movies, movies.indexOf(movie));
+		});
 
-    drawEditModals(movies, movies.indexOf(movie));
-  });
+		drawEditModals(movies, movies.indexOf(movie));
+	});
 }
 
 // Filter the table by search
 function filterMovies() {
-  let filteredMovies = [];
-  let search = document.getElementById('filter').value.toLowerCase();
-  if(search != ''){ 
-    movieDB.forEach(movie => {
-      if (Object.values(movie).toString().toLowerCase().includes(search)) {
-        filteredMovies.push(movie);
-      }
-    })
-    updateTableDisplay(filteredMovies);
-  } else {
-    updateTableDisplay(movieDB);
-  }
+	let filteredMovies = [];
+	let search = document.getElementById('filter').value.toLowerCase();
+	if (search != '') {
+		movieDB.forEach((movie) => {
+			if (Object.values(movie).toString().toLowerCase().includes(search)) {
+				filteredMovies.push(movie);
+			}
+		});
+		updateTableDisplay(filteredMovies);
+	} else {
+		updateTableDisplay(movieDB);
+	}
 }
